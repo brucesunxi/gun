@@ -362,63 +362,29 @@
   }
   .shop-close:hover { border-color: #aaa; color: #fff; }
 
-  /* Touch controls */
-  #touchControls {
+  /* Touch controls - simple zoom toggle */
+  .touch-zoom {
     display: none;
-    position: absolute;
-    bottom: 0; left: 0; right: 0; height: 140px;
-    pointer-events: none;
-    z-index: 15;
-  }
-  .touch-btn {
-    position: absolute;
-    pointer-events: auto;
+    position: fixed;
+    z-index: 20;
+    bottom: 16px; right: 16px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.5);
+    font-size: 18px;
+    cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
     touch-action: none;
-    font-size: 28px;
-    color: rgba(255,255,255,0.5);
-    border-radius: 50%;
-    display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.1s;
   }
-  .touch-btn:active, .touch-btn.pressed { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9); }
-  #touchLeft {
-    left: 20px; bottom: 16px;
-    width: 72px; height: 72px;
-    background: rgba(255,255,255,0.06);
-    border: 2px solid rgba(255,255,255,0.12);
-    font-size: 32px;
-  }
-  #touchRight {
-    left: 104px; bottom: 16px;
-    width: 72px; height: 72px;
-    background: rgba(255,255,255,0.06);
-    border: 2px solid rgba(255,255,255,0.12);
-    font-size: 32px;
-  }
-  #touchFire {
-    right: 20px; bottom: 16px;
-    width: 80px; height: 80px;
-    background: rgba(255,50,50,0.12);
-    border: 3px solid rgba(255,50,50,0.25);
-    font-size: 20px;
-    color: rgba(255,80,80,0.6);
-    font-weight: bold;
-  }
-  #touchFire:active, #touchFire.pressed { background: rgba(255,50,50,0.3); color: rgba(255,50,50,0.95); }
-  #touchZoom {
-    right: 114px; bottom: 20px;
-    width: 56px; height: 56px;
-    background: rgba(255,255,255,0.06);
-    border: 2px solid rgba(255,255,255,0.12);
-    font-size: 18px;
-  }
+  .touch-zoom:active { background: rgba(255,255,255,0.2); color: #fff; }
 
   @media (pointer: coarse) {
-    #touchControls { display: block; }
+    .touch-zoom { display: flex; }
     canvas { cursor: default; }
   }
   @media (max-width: 920px) {
@@ -429,10 +395,7 @@
     #startScreen h1 { font-size: 28px; }
     #startScreen .sub { font-size: 14px; margin-bottom: 16px; }
     #startScreen .controls { padding: 10px 14px; font-size: 11px; }
-    #touchControls { height: 120px; }
-    #touchLeft, #touchRight { width: 60px; height: 60px; font-size: 24px; }
-    #touchFire { width: 68px; height: 68px; font-size: 18px; }
-    #touchZoom { width: 46px; height: 46px; font-size: 16px; right: 100px; }
+    .touch-zoom { width: 40px; height: 40px; font-size: 16px; bottom: 12px; right: 12px; }
     .shop-panel { min-width: 280px; padding: 14px 16px; }
   }
   @media (max-width: 500px) {

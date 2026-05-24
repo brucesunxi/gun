@@ -442,6 +442,7 @@ function update() {
   player.moving=false;const sm=game.zoomed?0.35:1;
   if(keys.left){player.x-=player.speed*sm;player.dir=-1;player.moving=true;}
   if(keys.right){player.x+=player.speed*sm;player.dir=1;player.moving=true;}
+  if(touchTargetX!==null){const cv=document.getElementById('gameCanvas'),rect=cv.getBoundingClientRect(),gx=(touchTargetX-rect.left)/rect.width*W,dx=gx-player.x;if(Math.abs(dx)>5){player.x+=Math.sign(dx)*player.speed*sm;player.dir=dx>0?1:-1;player.moving=true;}}
   player.x=clamp(player.x,30,W-30);
   if(player.shootCooldown>0)player.shootCooldown--;
   if(player.invincible>0)player.invincible--;
@@ -515,11 +516,32 @@ document.addEventListener('keyup',(e)=>{
   if(e.key==='Shift'){keys.zoom=false;game.zoomed=false;e.preventDefault();}
 });
 
-function setupTouchButton(el,onoff){const start=(e)=>{e.preventDefault();if(onoff[0])onoff[0]();el.classList.add('pressed');};const end=(e)=>{e.preventDefault();if(onoff[1])onoff[1]();el.classList.remove('pressed');};el.addEventListener('touchstart',start,{passive:false});el.addEventListener('touchend',end,{passive:false});el.addEventListener('touchcancel',end,{passive:false});el.addEventListener('mousedown',start);el.addEventListener('mouseup',end);el.addEventListener('mouseleave',end);}
-setupTouchButton(document.getElementById('touchLeft'),[()=>keys.left=true,()=>keys.left=false]);
-setupTouchButton(document.getElementById('touchRight'),[()=>keys.right=true,()=>keys.right=false]);
-setupTouchButton(document.getElementById('touchFire'),[()=>keys.space=true,()=>keys.space=false]);
-setupTouchButton(document.getElementById('touchZoom'),[()=>{game.zoomed=!game.zoomed;keys.zoom=game.zoomed;},null]);
+// Touch controls: follow finger + auto-shoot
+let touchTargetX = null;
+document.getElementById('touchZoomBtn').addEventListener('click',()=>{game.zoomed=!game.zoomed;keys.zoom=game.zoomed;});
+
+document.addEventListener('touchstart',(e)=>{
+  if (e.target.closest('#shopOverlay') || e.target.closest('#gameOver') || e.target.closest('#victoryScreen') || e.target.closest('#startScreen') || e.target.closest('.touch-zoom')) return;
+  const t = e.touches[0];
+  touchTargetX = t.clientX;
+  keys.space = true;
+}, {passive:true});
+
+document.addEventListener('touchmove',(e)=>{
+  if (touchTargetX === null) return;
+  const t = e.touches[0];
+  touchTargetX = t.clientX;
+}, {passive:true});
+
+document.addEventListener('touchend',(e)=>{
+  if (e.target.closest('.touch-zoom')) return;
+  if (e.touches.length === 0) {
+    touchTargetX = null;
+    keys.space = false;
+  } else {
+    touchTargetX = e.touches[0].clientX;
+  }
+}, {passive:true});
 
 function fitGame(){
   const cv = document.getElementById('gameCanvas');
@@ -546,7 +568,7 @@ function fitGame(){
 window.addEventListener('resize',fitGame);
 window.addEventListener('orientationchange',()=>setTimeout(fitGame,300));
 fitGame();
-document.addEventListener('touchmove',(e)=>{if(e.target.closest('#gameContainer'))e.preventDefault();},{passive:false});
+document.addEventListener('touchmove',(e)=>{e.preventDefault();},{passive:false});
 canvas.addEventListener('contextmenu',(e)=>{e.preventDefault();});
 canvas.addEventListener('mousedown',(e)=>{if(e.button===2){game.zoomed=!game.zoomed;keys.zoom=game.zoomed;}});
 
