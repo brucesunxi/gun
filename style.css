@@ -422,20 +422,34 @@
     canvas { cursor: default; }
   }
   @media (max-width: 920px) {
-    #gameContainer { border-width: 1px; border-radius: 4px; }
-    #ui { font-size: 12px; padding: 6px 10px; }
-    .weapon-info { font-size: 11px; }
-    #startScreen h1 { font-size: 32px; }
-    #startScreen .controls { padding: 12px 16px; font-size: 12px; }
-    .shop-panel { min-width: 300px; padding: 16px 20px; }
+    body { align-items: flex-start; padding-top: 0; }
+    #gameContainer { border: none; border-radius: 0; }
+    #ui { font-size: 11px; padding: 4px 8px; }
+    .weapon-info { font-size: 10px; bottom: 4px; left: 8px; }
+    #startScreen h1 { font-size: 28px; }
+    #startScreen .sub { font-size: 14px; margin-bottom: 16px; }
+    #startScreen .controls { padding: 10px 14px; font-size: 11px; }
+    #touchControls { height: 120px; }
+    #touchLeft, #touchRight { width: 60px; height: 60px; font-size: 24px; }
+    #touchFire { width: 68px; height: 68px; font-size: 18px; }
+    #touchZoom { width: 46px; height: 46px; font-size: 16px; right: 100px; }
+    .shop-panel { min-width: 280px; padding: 14px 16px; }
   }
   @media (max-width: 500px) {
-    #startScreen h1 { font-size: 24px; }
-    #startScreen .controls { padding: 10px 12px; font-size: 11px; }
-    #difficultySetting { flex-wrap: wrap; gap: 6px; }
-    #difficultySetting input { width: 50px; }
-    #difficultySetting .preset { padding: 3px 8px; font-size: 11px; }
-    .start-bgm-row { font-size: 13px; }
-    .mode-btn { padding: 5px 14px; font-size: 13px; }
-    #startBtn { padding: 10px 32px; font-size: 18px; }
+    #startScreen h1 { font-size: 20px; }
+    #startScreen .sub { font-size: 12px; margin-bottom: 12px; }
+    #startScreen .controls { padding: 8px 10px; font-size: 10px; }
+    #difficultySetting { flex-wrap: wrap; gap: 4px; }
+    #difficultySetting input { width: 44px; font-size: 14px; }
+    #difficultySetting .preset { padding: 2px 6px; font-size: 10px; }
+    .start-bgm-row { font-size: 11px; margin-top: 8px; }
+    .mode-btn { padding: 4px 10px; font-size: 11px; }
+    #startBtn { padding: 8px 24px; font-size: 15px; margin-top: 14px; }
+    .shop-panel { min-width: 240px; padding: 10px 12px; }
+    .shop-panel h2 { font-size: 18px; }
+    .shop-item { padding: 6px 8px; font-size: 12px; }
+    #touchControls { height: 100px; }
+    #touchLeft, #touchRight { width: 50px; height: 50px; font-size: 20px; }
+    #touchFire { width: 56px; height: 56px; font-size: 16px; }
+    #touchZoom { width: 40px; height: 40px; font-size: 14px; right: 80px; bottom: 14px; }
   }

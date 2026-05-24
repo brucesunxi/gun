@@ -521,8 +521,18 @@ setupTouchButton(document.getElementById('touchRight'),[()=>keys.right=true,()=>
 setupTouchButton(document.getElementById('touchFire'),[()=>keys.space=true,()=>keys.space=false]);
 setupTouchButton(document.getElementById('touchZoom'),[()=>{game.zoomed=!game.zoomed;keys.zoom=game.zoomed;},null]);
 
-function fitGame(){const c=document.getElementById('gameContainer'),s=Math.min(1,(window.innerWidth-10)/930,(window.innerHeight-10)/690);c.style.transform=s<1?'scale('+s+')':'';c.style.transformOrigin='center center';}
+function fitGame(){
+  const c=document.getElementById('gameContainer');
+  const w=window.innerWidth, h=window.innerHeight;
+  const isMobile = w < 900 || h < 650;
+  if (!isMobile) { c.style.transform=''; return; }
+  const s = w / 930;
+  c.style.transform='scale('+s+')';
+  c.style.transformOrigin='center top';
+  c.style.marginTop = Math.max(0, (h - 650*s) / 2) + 'px';
+}
 window.addEventListener('resize',fitGame);
+window.addEventListener('orientationchange',()=>setTimeout(fitGame,300));
 fitGame();
 document.addEventListener('touchmove',(e)=>{if(e.target.closest('#gameContainer'))e.preventDefault();},{passive:false});
 canvas.addEventListener('contextmenu',(e)=>{e.preventDefault();});
