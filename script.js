@@ -521,8 +521,9 @@ setupTouchButton(document.getElementById('touchRight'),[()=>keys.right=true,()=>
 setupTouchButton(document.getElementById('touchFire'),[()=>keys.space=true,()=>keys.space=false]);
 setupTouchButton(document.getElementById('touchZoom'),[()=>{game.zoomed=!game.zoomed;keys.zoom=game.zoomed;},null]);
 
-function fitGame(){const c=document.getElementById('gameContainer'),mw=window.innerWidth-10,mh=window.innerHeight-10,scale=Math.min(1,mw/920,mh/680);c.style.transform='scale('+scale+')';c.style.transformOrigin='top left';c.style.marginLeft=((mw-920*scale)/2)+'px';}
+function fitGame(){const c=document.getElementById('gameContainer'),s=Math.min(1,(window.innerWidth-10)/930,(window.innerHeight-10)/690);c.style.transform=s<1?'scale('+s+')':'';c.style.transformOrigin='center center';}
 window.addEventListener('resize',fitGame);
+fitGame();
 document.addEventListener('touchmove',(e)=>{if(e.target.closest('#gameContainer'))e.preventDefault();},{passive:false});
 canvas.addEventListener('contextmenu',(e)=>{e.preventDefault();});
 canvas.addEventListener('mousedown',(e)=>{if(e.button===2){game.zoomed=!game.zoomed;keys.zoom=game.zoomed;}});
