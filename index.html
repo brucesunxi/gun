@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>战场射击</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="gameContainer">
+  <canvas id="gameCanvas" width="900" height="650"></canvas>
+  <div id="ui">
+    <div>🔥 得分 <span id="score">0</span></div>
+    <div id="uiCenter">❤️ <span id="lives">3</span> | 剩余 <span id="remaining">0</span>/<span id="total">0</span></div>
+    <div>🎯 击杀 <span id="kills">0</span></div>
+  </div>
+  <div class="weapon-info" id="weaponInfo">🔫 手枪 (18伤害)</div>
+  <div id="touchControls">
+    <div class="touch-btn" id="touchLeft">◀</div>
+    <div class="touch-btn" id="touchRight">▶</div>
+    <div class="touch-btn" id="touchFire">🔥</div>
+    <div class="touch-btn" id="touchZoom">🔭</div>
+  </div>
+  <button class="train-exit-btn" id="trainExitBtn" style="display:none;">🚪 退出训练</button>
+  <div id="trainStats">🎯 命中率: 0%<br>连击: 0</div>
+  <button class="shop-btn" id="shopBtn">🏪 商店</button>
+  <button class="sound-toggle" id="soundToggle">🔊 音效</button>
+  <button class="bgm-toggle" id="bgmToggle">🎵 BGM</button>
+  <div id="shopOverlay">
+    <div class="shop-panel">
+      <h2>🏪 军火商店</h2>
+      <div class="coin">💰 持有资金: <span id="shopCoin">0</span></div>
+      <div id="shopItems"></div>
+      <button class="shop-close" id="shopCloseBtn">关闭商店</button>
+    </div>
+  </div>
+  <div id="waveInfo"></div>
+  <div id="startScreen">
+    <h1>⚔ 战场射击 ⚔</h1>
+    <div class="sub" id="startSub">—— 消灭全部敌人 ——</div>
+    <div class="controls">
+      <kbd>A</kbd> <kbd>D</kbd> 或 ← → 移动 &nbsp;|&nbsp; <kbd>Space</kbd> 射击<br>
+      <kbd>Shift</kbd> 或右键 瞄准 &nbsp;|&nbsp; <kbd>B</kbd> 商店
+      <div id="difficultySetting">
+        <span>敌人总数:</span>
+        <input type="number" id="enemyCountInput" value="8" min="1" max="50">
+        <button class="preset" data-count="4">😊 简单</button>
+        <button class="preset active" data-count="8">⚔ 普通</button>
+        <button class="preset" data-count="18">💀 困难</button>
+        <button class="preset" data-count="35">☠ 地狱</button>
+      </div>
+      <div class="mode-row">
+        <span style="color:#888;font-size:13px;">模式:</span>
+        <button class="mode-btn active" id="modeBattleBtn">⚔ 战场</button>
+        <button class="mode-btn train" id="modeTrainBtn">🎯 训练场</button>
+      </div>
+    </div>
+    <div class="start-bgm-row">
+      <span>背景音乐:</span>
+      <button class="start-bgm-btn" id="startBgmBtn">🎵 开启</button>
+    </div>
+    <button class="start-btn" id="startBtn">进入战场</button>
+    <div style="margin-top:14px;color:#555;font-size:13px;">👶 6岁+ 适龄游戏</div>
+  </div>
+  <div id="gameOver">
+    <h1>💀 战死沙场</h1>
+    <p>击杀: <span id="finalKills">0</span> / <span id="finalTotal">0</span></p>
+    <p>得分: <span id="finalScore">0</span></p>
+    <button class="end-btn" id="restartBtn">重新战斗</button>
+    <button class="menu-btn" id="gameOverMenuBtn">返回主菜单</button>
+  </div>
+  <div id="victoryScreen">
+    <h1>🏆 胜利！</h1>
+    <p>全部 <span id="vicTotal">0</span> 名敌人已被消灭</p>
+    <p>得分: <span id="vicScore">0</span></p>
+    <button class="end-btn" id="victoryRestartBtn">再来一局</button>
+    <button class="menu-btn" id="victoryMenuBtn">返回主菜单</button>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
