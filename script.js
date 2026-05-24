@@ -242,7 +242,7 @@ function spawnSupply() { game.supplies.push({x:rand(50,W-50),y:-20,type:'ammo',s
 function createExplosion(x,y,color,count) {
   color=color||'#ff6600'; count=count||20;
   for(let i=0;i<count;i++){const a=rand(0,Math.PI*2),s=rand(1,5);game.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:randInt(20,50),maxLife:50,size:rand(2,6),color:Math.random()<0.5?color:'#ffcc00'});}
-  game.screenShake=Math.max(game.screenShake||0,5);
+  if (count >= 15) game.screenShake=Math.max(game.screenShake,5);
 }
 function createMuzzleFlash(x,y){game.muzzleFlashes.push({x,y,life:6,maxLife:6,size:rand(4,10)});}
 
@@ -442,7 +442,7 @@ function update() {
   player.moving=false;const sm=game.zoomed?0.35:1;
   if(keys.left){player.x-=player.speed*sm;player.dir=-1;player.moving=true;}
   if(keys.right){player.x+=player.speed*sm;player.dir=1;player.moving=true;}
-  if(touchTargetX!==null){const cv=document.getElementById('gameCanvas'),rect=cv.getBoundingClientRect(),gx=(touchTargetX-rect.left)/rect.width*W,dx=gx-player.x;if(Math.abs(dx)>5){player.x+=Math.sign(dx)*player.speed*sm;player.dir=dx>0?1:-1;player.moving=true;}}
+  if(touchTargetX!==null){const cv=document.getElementById('gameCanvas'),rect=cv.getBoundingClientRect(),gx=(touchTargetX-rect.left)/rect.width*W,dx=gx-player.x;if(Math.abs(dx)>2){player.x+=Math.sign(dx)*player.speed*1.5*sm;player.dir=dx>0?1:-1;player.moving=true;}}
   player.x=clamp(player.x,30,W-30);
   if(player.shootCooldown>0)player.shootCooldown--;
   if(player.invincible>0)player.invincible--;

@@ -249,7 +249,7 @@
   }
   .sound-toggle {
     position: fixed;
-    bottom: 10px; right: 16px;
+    bottom: 56px; right: 16px;
     color: #888;
     font-size: 13px;
     pointer-events: auto;
@@ -264,7 +264,7 @@
   .sound-toggle:hover { border-color: #aaa; color: #fff; }
   .bgm-toggle {
     position: fixed;
-    bottom: 34px; right: 16px;
+    bottom: 80px; right: 16px;
     color: #888;
     font-size: 13px;
     pointer-events: auto;
