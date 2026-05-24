@@ -289,7 +289,7 @@ function checkBossDefeated() {
 function gameOver() {
   game.running=false;game.over=true;
   finalScore.textContent=game.score;finalKills.textContent=game.kills;finalTotal.textContent=game.totalEnemies;
-  gameOverScreen.style.display='flex';createExplosion(player.x,player.y,'#ff0000',40);playSound('gameover');
+  gameOverScreen.style.display='flex';createExplosion(player.x,player.y,'#ff0000',40);game.screenShake=0;playSound('gameover');
 }
 function playerTakeDamage(dmg) {
   if(player.invincible>0||game.trainingMode)return;
