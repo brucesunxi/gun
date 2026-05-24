@@ -524,12 +524,12 @@ setupTouchButton(document.getElementById('touchZoom'),[()=>{game.zoomed=!game.zo
 function fitGame(){
   const c=document.getElementById('gameContainer');
   const w=window.innerWidth, h=window.innerHeight;
-  const isMobile = w < 900 || h < 650;
-  if (!isMobile) { c.style.transform=''; return; }
-  const s = w / 930;
+  if (w>920 && h>670) { c.style.transform=''; c.style.margin=''; return; }
+  // Fill the screen: scale game to be at least as big as viewport
+  const s = Math.max((w+4)/930, (h+4)/690);
   c.style.transform='scale('+s+')';
-  c.style.transformOrigin='center top';
-  c.style.marginTop = Math.max(0, (h - 650*s) / 2) + 'px';
+  c.style.transformOrigin='center center';
+  c.style.margin='';
 }
 window.addEventListener('resize',fitGame);
 window.addEventListener('orientationchange',()=>setTimeout(fitGame,300));
