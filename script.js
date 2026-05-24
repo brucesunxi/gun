@@ -553,8 +553,8 @@ function fitGame(){
     c.style.transform=''; c.style.width=''; c.style.height='';
     return;
   }
-  // Fill viewport with canvas (stretches internal 900x650 rendering)
-  const scale = Math.max(w / 900, h / 650);
+  // Scale canvas to fill viewport width, height may overflow
+  const scale = Math.min(w / 900, 1);
   const cw = Math.round(900 * scale), ch = Math.round(650 * scale);
   cv.style.width = cw + 'px';
   cv.style.height = ch + 'px';
