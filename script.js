@@ -522,14 +522,26 @@ setupTouchButton(document.getElementById('touchFire'),[()=>keys.space=true,()=>k
 setupTouchButton(document.getElementById('touchZoom'),[()=>{game.zoomed=!game.zoomed;keys.zoom=game.zoomed;},null]);
 
 function fitGame(){
-  const c=document.getElementById('gameContainer');
-  const w=window.innerWidth, h=window.innerHeight;
-  if (w>920 && h>670) { c.style.transform=''; c.style.margin=''; return; }
-  // Fill the screen: scale game to be at least as big as viewport
-  const s = Math.max((w+4)/930, (h+4)/690);
-  c.style.transform='scale('+s+')';
-  c.style.transformOrigin='center center';
-  c.style.margin='';
+  const cv = document.getElementById('gameCanvas');
+  const c = document.getElementById('gameContainer');
+  const w = window.innerWidth, h = window.innerHeight;
+  if (w > 920 && h > 670) {
+    cv.style.width=''; cv.style.height='';
+    c.style.position=''; c.style.top=''; c.style.left='';
+    c.style.transform=''; c.style.width=''; c.style.height='';
+    return;
+  }
+  // Fill viewport with canvas (stretches internal 900x650 rendering)
+  const scale = Math.max(w / 900, h / 650);
+  const cw = Math.round(900 * scale), ch = Math.round(650 * scale);
+  cv.style.width = cw + 'px';
+  cv.style.height = ch + 'px';
+  c.style.width = cw + 'px';
+  c.style.height = ch + 'px';
+  c.style.position = 'fixed';
+  c.style.top = '50%';
+  c.style.left = '50%';
+  c.style.transform = 'translate(-50%, -50%)';
 }
 window.addEventListener('resize',fitGame);
 window.addEventListener('orientationchange',()=>setTimeout(fitGame,300));
