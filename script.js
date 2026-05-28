@@ -585,3 +585,105 @@ document.getElementById('victoryMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('trainExitBtn').addEventListener('click',goToMenu);
 document.querySelectorAll('.preset').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.preset').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('enemyCountInput').value=btn.dataset.count;});});
 document.getElementById('enemyCountInput').addEventListener('input',()=>{document.querySelectorAll('.preset').forEach(b=>b.classList.remove('active'));});
+
+// ==================== 密码登录系统 ====================
+const PASSWORD_KEY = 'battle_shooter_password';
+const PASSWORD_HINT_KEY = 'battle_shooter_password_hint';
+const loginScreen = document.getElementById('loginScreen');
+const setPasswordScreen = document.getElementById('setPasswordScreen');
+
+function checkPassword() {
+  const savedPassword = localStorage.getItem(PASSWORD_KEY);
+  if (!savedPassword) {
+    // 首次进入，需要设置密码
+    loginScreen.style.display = 'none';
+    setPasswordScreen.style.display = 'flex';
+    startScreen.style.display = 'none';
+  } else {
+    // 已有密码，显示登录界面
+    loginScreen.style.display = 'flex';
+    setPasswordScreen.style.display = 'none';
+    startScreen.style.display = 'none';
+  }
+}
+
+// 设置密码
+document.getElementById('setPasswordBtn').addEventListener('click', () => {
+  const newPwd = document.getElementById('newPassword').value.trim();
+  const confirmPwd = document.getElementById('confirmPassword').value.trim();
+  const hint = document.getElementById('passwordHint').value.trim();
+  const errorEl = document.getElementById('setPwdError');
+
+  if (newPwd.length < 4) {
+    errorEl.textContent = '密码至少需要4位字符';
+    return;
+  }
+  if (newPwd.length > 20) {
+    errorEl.textContent = '密码不能超过20位字符';
+    return;
+  }
+  if (newPwd !== confirmPwd) {
+    errorEl.textContent = '两次输入的密码不一致';
+    return;
+  }
+
+  localStorage.setItem(PASSWORD_KEY, newPwd);
+  if (hint) {
+    localStorage.setItem(PASSWORD_HINT_KEY, hint);
+  }
+
+  // 进入游戏主界面
+  setPasswordScreen.style.display = 'none';
+  startScreen.style.display = 'flex';
+});
+
+// 登录
+document.getElementById('loginBtn').addEventListener('click', () => {
+  const inputPwd = document.getElementById('loginPassword').value;
+  const savedPassword = localStorage.getItem(PASSWORD_KEY);
+  const hintEl = document.getElementById('loginHintText');
+
+  if (inputPwd === savedPassword) {
+    // 密码正确，进入游戏
+    loginScreen.style.display = 'none';
+    startScreen.style.display = 'flex';
+    document.getElementById('loginPassword').value = '';
+    hintEl.textContent = '';
+  } else {
+    hintEl.textContent = '密码错误，请重试';
+    hintEl.style.color = '#ff6666';
+  }
+});
+
+// 回车键登录
+document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('loginBtn').click();
+  }
+});
+
+// 忘记密码
+document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  const hint = localStorage.getItem(PASSWORD_HINT_KEY);
+  const forgotHintEl = document.getElementById('forgotPasswordHint');
+  const hintDisplay = document.getElementById('passwordHintDisplay');
+
+  if (hint) {
+    hintDisplay.textContent = hint;
+    forgotHintEl.style.display = 'block';
+  } else {
+    hintDisplay.textContent = '您没有设置密码提示。建议清除浏览器数据后重新设置密码。';
+    forgotHintEl.style.display = 'block';
+  }
+});
+
+// 设置密码时回车键
+document.getElementById('confirmPassword').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('setPasswordBtn').click();
+  }
+});
+
+// 页面加载时检查密码
+checkPassword();

@@ -30,7 +30,34 @@
     </div>
   </div>
   <div id="waveInfo"></div>
-  <div id="startScreen">
+  <div id="loginScreen">
+    <h1>🔐 登录游戏</h1>
+    <div class="login-box">
+      <input type="password" id="loginPassword" placeholder="请输入密码" maxlength="20">
+      <button class="login-btn" id="loginBtn">进入游戏</button>
+      <div class="login-hint">
+        <span id="loginHintText"></span>
+        <a href="#" id="forgotPasswordLink" class="forgot-link">忘记密码？</a>
+      </div>
+      <div id="forgotPasswordHint" class="forgot-hint" style="display:none;">
+        💡 提示：<span id="passwordHintDisplay"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="setPasswordScreen" style="display:none;">
+    <h1>🔐 首次登录</h1>
+    <div class="login-box">
+      <p class="set-pwd-desc">请设置您的游戏密码（4-20位）</p>
+      <input type="password" id="newPassword" placeholder="设置密码" maxlength="20">
+      <input type="password" id="confirmPassword" placeholder="确认密码" maxlength="20">
+      <input type="text" id="passwordHint" placeholder="设置密码提示（用于找回密码）" maxlength="30">
+      <button class="login-btn" id="setPasswordBtn">设置密码</button>
+      <p id="setPwdError" class="error-msg"></p>
+    </div>
+  </div>
+
+  <div id="startScreen" style="display:none;">
     <h1>⚔ 战场射击 ⚔</h1>
     <div class="sub" id="startSub">—— 消灭全部敌人 ——</div>
     <div class="controls">
