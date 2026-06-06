@@ -1225,6 +1225,16 @@ function hideGameUI(){
 }
 
 // ==================== 反馈按钮 ====================
+// 全局函数，供 HTML onclick 调用
+window.showOverlay = function(){
+  const el = document.getElementById('feedbackOverlay');
+  if(el){
+    el.style.display = 'flex';
+    const ft = document.getElementById('feedbackText');
+    if(ft) setTimeout(()=>ft.focus(), 100);
+  }
+};
+
 function showFeedbackBtn(){
   const btn = document.getElementById('feedbackBtn');
   if(btn) btn.style.display = 'block';
@@ -1235,12 +1245,6 @@ function hideFeedbackBtn(){
 }
 
 // 反馈按钮事件
-document.getElementById('feedbackBtn').addEventListener('click', function(){
-  document.getElementById('feedbackOverlay').style.display = 'flex';
-  const ft = document.getElementById('feedbackText');
-  if(ft) setTimeout(()=>ft.focus(), 100);
-});
-
 document.getElementById('feedbackClose').addEventListener('click', () => {
   document.getElementById('feedbackOverlay').style.display = 'none';
   document.getElementById('feedbackText').value = '';
