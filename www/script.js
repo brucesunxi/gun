@@ -194,11 +194,12 @@ const rankSystem = {
   levels: [
     {name:'bronze',title:'🥉 青铜',color:'#cd7f32',next:100,bonus:1},
     {name:'silver',title:'🥈 白银',color:'#c0c0c0',next:300,bonus:1.1},
-    {name:'obsidian',title:'🖤 黑曜石',color:'#4a0080',next:600,bonus:1.2},
-    {name:'diamond',title:'💎 钻石',color:'#00ffff',next:1000,bonus:1.3},
-    {name:'veteran',title:'⚔️ 老兵',color:'#ff4444',next:1500,bonus:1.4},
-    {name:'king',title:'👑 王者',color:'#ffd700',next:2500,bonus:1.5},
-    {name:'trophy',title:'🏆 奖杯',color:'#ff6600',next:999999,bonus:2}
+    {name:'gold',title:'🥇 黄金',color:'#ffd700',next:600,bonus:1.2},
+    {name:'platinum',title:'💠 铂金',color:'#e5e4e2',next:1000,bonus:1.3},
+    {name:'diamond',title:'💎 钻石',color:'#00ffff',next:1500,bonus:1.4},
+    {name:'master',title:'👑 大师',color:'#9d00ff',next:2200,bonus:1.5},
+    {name:'legend',title:'🔥 传奇',color:'#ff6600',next:3000,bonus:1.7},
+    {name:'god',title:'⭐ 战神',color:'#ff0000',next:999999,bonus:2}
   ],
   getCurrent(){return this.levels.find(l=>l.name===game.rank)||this.levels[0];},
   getNext(){const idx=this.levels.findIndex(l=>l.name===game.rank);return this.levels[Math.min(idx+1,this.levels.length-1)];},
@@ -352,6 +353,13 @@ function updateUI() {
   rankEl.textContent=rank.title;
   rankEl.className=rank.name;
   rankEl.style.color=rank.color;
+  rankEl.style.display=game.running?'none':'block';
+  // 更新主页面等级显示
+  const startRankEl=document.getElementById('startScreenRank');
+  if(startRankEl){
+    startRankEl.textContent=rank.title;
+    startRankEl.className='start-rank '+rank.name;
+  }
 }
 function updateTrainingStats() {
   const acc=game.shotsFired>0?Math.round(game.hits/game.shotsFired*100):0;

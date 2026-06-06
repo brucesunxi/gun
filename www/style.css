@@ -45,11 +45,31 @@
     transition: all 0.3s;
   }
   #rankDisplay.silver { color: #c0c0c0; }
-  #rankDisplay.obsidian { color: #a020f0; text-shadow: 0 0 8px rgba(160,32,240,0.5); }
+  #rankDisplay.gold { color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.5); }
+  #rankDisplay.platinum { color: #e5e4e2; text-shadow: 0 0 8px rgba(229,228,226,0.5); }
   #rankDisplay.diamond { color: #00ffff; text-shadow: 0 0 8px rgba(0,255,255,0.5); }
-  #rankDisplay.veteran { color: #ff4444; text-shadow: 0 0 8px rgba(255,68,68,0.5); }
-  #rankDisplay.king { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.6); }
-  #rankDisplay.trophy { color: #ff6600; text-shadow: 0 0 12px rgba(255,102,0,0.7); font-size: 15px; }
+  #rankDisplay.master { color: #9d00ff; text-shadow: 0 0 10px rgba(157,0,255,0.6); }
+  #rankDisplay.legend { color: #ff6600; text-shadow: 0 0 12px rgba(255,102,0,0.7); }
+  #rankDisplay.god { color: #ff0000; text-shadow: 0 0 15px rgba(255,0,0,0.8); font-size: 15px; }
+  /* Start screen rank display */
+  .start-rank {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 10px 0;
+    padding: 8px 20px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    border: 2px solid;
+    transition: all 0.3s;
+  }
+  .start-rank.bronze { color: #cd7f32; border-color: #cd7f32; }
+  .start-rank.silver { color: #c0c0c0; border-color: #c0c0c0; }
+  .start-rank.gold { color: #ffd700; border-color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.5); }
+  .start-rank.platinum { color: #e5e4e2; border-color: #e5e4e2; text-shadow: 0 0 8px rgba(229,228,226,0.5); }
+  .start-rank.diamond { color: #00ffff; border-color: #00ffff; text-shadow: 0 0 10px rgba(0,255,255,0.6); }
+  .start-rank.master { color: #9d00ff; border-color: #9d00ff; text-shadow: 0 0 10px rgba(157,0,255,0.6); }
+  .start-rank.legend { color: #ff6600; border-color: #ff6600; text-shadow: 0 0 12px rgba(255,102,0,0.7); }
+  .start-rank.god { color: #ff0000; border-color: #ff0000; text-shadow: 0 0 15px rgba(255,0,0,0.8); font-size: 20px; }
   #gameOver, #victoryScreen {
     display: none;
     position: absolute;
