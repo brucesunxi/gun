@@ -888,26 +888,6 @@ function updateUsernameDisplay() {
   }
 }
 
-// 退出登录（切换用户）
-document.getElementById('logoutBtn').addEventListener('click', () => {
-  // 保存当前用户数据
-  if (currentUser) {
-    const userData = getUserData(currentUser);
-    userData.unlockedLevel = game.unlockedLevel;
-    userData.currentLevel = game.currentLevel;
-    userData.rank = game.rank;
-    userData.rankScore = game.rankScore;
-    saveUserData(currentUser, userData);
-  }
-  // 清除当前用户，返回登录界面
-  currentUser = null;
-  isAdmin = false;
-  localStorage.removeItem(CURRENT_USER_KEY);
-  startScreen.style.display = 'none';
-  loginScreen.style.display = 'flex';
-  document.getElementById('loginPassword').value = '';
-});
-
 // ==================== 关卡系统 ====================
 function renderLevelSelector(){
   const grid=document.getElementById('levelGrid');
@@ -950,6 +930,26 @@ const usernameScreen = document.getElementById('usernameScreen');
 
 let currentUser = null;
 let isAdmin = false;
+
+// 退出登录（切换用户）- 放在这里因为需要用 loginScreen 变量
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  // 保存当前用户数据
+  if (currentUser) {
+    const userData = getUserData(currentUser);
+    userData.unlockedLevel = game.unlockedLevel;
+    userData.currentLevel = game.currentLevel;
+    userData.rank = game.rank;
+    userData.rankScore = game.rankScore;
+    saveUserData(currentUser, userData);
+  }
+  // 清除当前用户，返回登录界面
+  currentUser = null;
+  isAdmin = false;
+  localStorage.removeItem(CURRENT_USER_KEY);
+  startScreen.style.display = 'none';
+  loginScreen.style.display = 'flex';
+  document.getElementById('loginPassword').value = '';
+});
 
 // 用户数据管理
 function getUserData(username) {
