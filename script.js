@@ -1234,13 +1234,12 @@ function hideGameUI(){
 
 // ==================== 反馈按钮 ====================
 function showFeedbackBtn(){
-  let btn = document.querySelector('#feedbackBtn') || document.querySelector('.feedback-btn');
+  let btn = document.getElementById('feedbackBtn');
   if(!btn){
     btn = document.createElement('button');
     btn.id = 'feedbackBtn';
-    btn.className = 'feedback-btn';
     btn.textContent = '💬 反馈';
-    btn.style.cssText = 'position:fixed;bottom:104px;right:16px;color:#888;font-size:13px;cursor:pointer;background:none;border:1px solid #555;border-radius:4px;padding:2px 8px;font-family:inherit;z-index:9999';
+    btn.style.cssText = 'position:fixed !important;bottom:120px !important;right:16px !important;color:#ffd700 !important;font-size:16px !important;cursor:pointer !important;background:#333 !important;border:2px solid #ffd700 !important;border-radius:6px !important;padding:6px 14px !important;font-family:inherit !important;z-index:99999 !important;display:block !important;';
     document.body.appendChild(btn);
   }
   btn.style.display = 'block';
