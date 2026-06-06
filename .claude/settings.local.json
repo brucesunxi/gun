@@ -14,7 +14,9 @@
       "Bash(vercel --version)",
       "Bash(vercel *)",
       "Bash(node --check /Users/jianrong/Downloads/CCP/gun/script.js)",
-      "Bash(pkill -f \"python3 -m http.server\")"
+      "Bash(pkill -f \"python3 -m http.server\")",
+      "Bash(GIT_SSH_COMMAND=\"ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=10\" git push *)",
+      "Bash(git remote *)"
     ]
   }
 }

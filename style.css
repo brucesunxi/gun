@@ -63,7 +63,7 @@
     display: none;
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.75);
+    background: #1a1a1a;
     justify-content: center;
     align-items: center;
     flex-direction: column;
@@ -108,10 +108,10 @@
   .menu-btn:hover { color: #fff; border-color: #aaa; }
 
   /* Login Screen */
-  #loginScreen, #setPasswordScreen {
+  #loginScreen, #setPasswordScreen, #usernameScreen {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.9);
+    background: #1a1a1a;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -119,7 +119,7 @@
     color: #fff;
     z-index: 100;
   }
-  #loginScreen h1, #setPasswordScreen h1 {
+  #loginScreen h1, #setPasswordScreen h1, #usernameScreen h1 {
     font-size: 42px;
     color: #ffd700;
     text-shadow: 0 0 30px rgba(255,215,0,0.4);
@@ -211,7 +211,7 @@
   #startScreen {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.85);
+    background: #1a1a1a;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -337,12 +337,26 @@
 .ai-btn.active#aiTeammateMid { background: #4a3a5a; color: #d4aaff; border-color: #aa88ff; }
 .ai-btn.active#aiTeammateHigh { background: #3a5a3a; color: #88ffaa; border-color: #66ff88; }
   #startScreen { z-index: 30; }
+  /* Hide game UI elements when overlays are active */
   #startScreen ~ .sound-toggle,
   #startScreen ~ .bgm-toggle,
   #startScreen ~ .shop-btn,
   #startScreen ~ .weapon-info,
   #startScreen ~ #trainStats,
-  #startScreen ~ .touch-zoom { display: none !important; }
+  #startScreen ~ .touch-zoom,
+  #startScreen ~ .feedback-btn,
+  #startScreen ~ #ui,
+  #startScreen ~ #touchZoomBtn { display: none !important; }
+  /* Also hide UI elements during login */
+  #loginScreen ~ .sound-toggle,
+  #loginScreen ~ .bgm-toggle,
+  #loginScreen ~ .shop-btn,
+  #loginScreen ~ .weapon-info,
+  #loginScreen ~ #trainStats,
+  #loginScreen ~ .touch-zoom,
+  #loginScreen ~ .feedback-btn,
+  #loginScreen ~ #ui,
+  #loginScreen ~ #touchZoomBtn { display: none !important; }
   #trainStats {
     display: none;
     position: fixed;
