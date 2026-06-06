@@ -1146,6 +1146,11 @@ document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
 // 首次使用？进入设置密码
 document.getElementById('firstTimeLink').addEventListener('click', (e) => {
   e.preventDefault();
+  // 把登录界面输入的用户名带到用户名设置界面
+  const loginUser = document.getElementById('loginUsername').value.trim();
+  if (loginUser) {
+    document.getElementById('usernameInput').value = loginUser;
+  }
   loginScreen.style.display = 'none';
   setPasswordScreen.style.display = 'flex';
 });
