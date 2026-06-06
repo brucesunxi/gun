@@ -3,7 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="战场射击">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="一款快节奏的射击游戏，消灭全部敌人取得胜利">
 <title>战场射击</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192x192.png">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -76,6 +84,10 @@
         <button class="mode-btn active" id="modeBattleBtn">⚔ 战场</button>
         <button class="mode-btn train" id="modeTrainBtn">🎯 训练场</button>
       </div>
+      <div class="ai-row" id="aiTeammateRow">
+        <span style="color:#888;font-size:13px;">AI队友:</span>
+        <button class="ai-btn" id="aiTeammateBtn">🤖 关闭</button>
+      </div>
     </div>
     <div class="start-bgm-row">
       <span>背景音乐:</span>
@@ -99,6 +111,20 @@
     <button class="menu-btn" id="victoryMenuBtn">返回主菜单</button>
   </div>
 </div>
-<script src="script.js"></script>
+<script src="script.js?v=1000"></script>
+<script>
+  // 注册 Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker 注册成功:', registration.scope);
+        })
+        .catch((error) => {
+          console.log('Service Worker 注册失败:', error);
+        });
+    });
+  }
+</script>
 </body>
 </html>
