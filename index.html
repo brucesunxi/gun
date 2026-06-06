@@ -32,6 +32,21 @@
   <button class="shop-btn" id="shopBtn">🏪 商店</button>
   <button class="sound-toggle" id="soundToggle">🔊 音效</button>
   <button class="bgm-toggle" id="bgmToggle">🎵 BGM</button>
+  <button class="feedback-btn" id="feedbackBtn">💬 反馈</button>
+  <div id="feedbackOverlay" style="display:none;">
+    <div class="feedback-panel">
+      <h3>💬 提交反馈</h3>
+      <textarea id="feedbackText" placeholder="请输入您的建议或遇到的问题..."></textarea>
+      <div class="feedback-actions">
+        <button id="feedbackSubmit">提交</button>
+        <button id="feedbackClose">取消</button>
+      </div>
+    </div>
+  </div>
+  <div id="devNotification" style="display:none;">
+    <span id="devNotifText">📩 有新反馈！</span>
+    <button id="devNotifClose">×</button>
+  </div>
   <div id="shopOverlay">
     <div class="shop-panel">
       <h2>🏪 军火商店</h2>

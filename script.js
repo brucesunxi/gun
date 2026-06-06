@@ -1003,5 +1003,117 @@ document.getElementById('confirmPassword').addEventListener('keypress', (e) => {
   }
 });
 
+// ==================== 反馈系统 ====================
+const FEEDBACK_KEY = 'battle_shooter_feedback';
+const FEEDBACK_READ_KEY = 'battle_shooter_feedback_read';
+
+function saveFeedback(text) {
+  const feedback = {
+    text: text,
+    time: new Date().toISOString(),
+    level: game.currentLevel,
+    score: game.score
+  };
+  let allFeedback = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
+  allFeedback.push(feedback);
+  localStorage.setItem(FEEDBACK_KEY, JSON.stringify(allFeedback));
+}
+
+function getUnreadFeedbackCount() {
+  const allFeedback = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
+  const lastRead = parseInt(localStorage.getItem(FEEDBACK_READ_KEY) || '0');
+  return allFeedback.filter(f => new Date(f.time).getTime() > lastRead).length;
+}
+
+function markFeedbackAsRead() {
+  localStorage.setItem(FEEDBACK_READ_KEY, Date.now().toString());
+}
+
+function getAllFeedback() {
+  return JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
+}
+
+function clearAllFeedback() {
+  localStorage.removeItem(FEEDBACK_KEY);
+  localStorage.removeItem(FEEDBACK_READ_KEY);
+}
+
+// 反馈按钮事件
+document.getElementById('feedbackBtn').addEventListener('click', () => {
+  document.getElementById('feedbackOverlay').style.display = 'flex';
+  document.getElementById('feedbackText').focus();
+});
+
+document.getElementById('feedbackClose').addEventListener('click', () => {
+  document.getElementById('feedbackOverlay').style.display = 'none';
+  document.getElementById('feedbackText').value = '';
+});
+
+document.getElementById('feedbackSubmit').addEventListener('click', () => {
+  const text = document.getElementById('feedbackText').value.trim();
+  if (!text) {
+    alert('请输入反馈内容');
+    return;
+  }
+  saveFeedback(text);
+  document.getElementById('feedbackOverlay').style.display = 'none';
+  document.getElementById('feedbackText').value = '';
+  alert('感谢您的反馈！');
+});
+
+// 开发者通知关闭
+document.getElementById('devNotifClose').addEventListener('click', () => {
+  document.getElementById('devNotification').style.display = 'none';
+});
+
+// 检查是否有新反馈（开发者模式）
+function checkNewFeedback() {
+  const unread = getUnreadFeedbackCount();
+  if (unread > 0) {
+    const notif = document.getElementById('devNotification');
+    document.getElementById('devNotifText').textContent = `📩 有 ${unread} 条新反馈！`;
+    notif.style.display = 'block';
+  }
+}
+
+// 点击通知查看反馈
+document.getElementById('devNotification').addEventListener('click', () => {
+  const feedbackList = getAllFeedback();
+  if (feedbackList.length === 0) {
+    alert('暂无反馈');
+    return;
+  }
+
+  let msg = `共 ${feedbackList.length} 条反馈：\n\n`;
+  feedbackList.slice(-10).reverse().forEach((f, i) => {
+    const time = new Date(f.time).toLocaleString('zh-CN');
+    msg += `[${time}] 第${f.level}关 得分${f.score}\n`;
+    msg += `反馈: ${f.text}\n\n`;
+  });
+
+  alert(msg);
+  markFeedbackAsRead();
+  document.getElementById('devNotification').style.display = 'none';
+});
+
+// 页面加载时检查新反馈
+setTimeout(checkNewFeedback, 1000);
+
+// ==================== 开发者命令 ====================
+// 在控制台输入 showFeedback() 查看所有反馈
+window.showFeedback = function() {
+  const feedbackList = getAllFeedback();
+  console.log('=== 所有反馈 ===');
+  feedbackList.forEach((f, i) => {
+    console.log(`${i+1}. [${new Date(f.time).toLocaleString('zh-CN')}] 第${f.level}关`);
+    console.log(`   反馈: ${f.text}`);
+    console.log(`   得分: ${f.score}`);
+  });
+  return `共 ${feedbackList.length} 条反馈`;
+};
+
+// 清空反馈
+window.clearFeedback = clearAllFeedback;
+
 // 页面加载时检查密码
 checkPassword();
