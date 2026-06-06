@@ -364,6 +364,7 @@ function triggerBoss() {
     victoryScreen.style.display='flex';
     createExplosion(W/2,H/3,'#ffd700',50);
     playSound('victory');
+    recordGameResult(game.score, true, game.currentLevel);
     unlockNextLevel();
     return;
   }
@@ -377,6 +378,7 @@ function triggerBoss() {
     victoryScreen.style.display='flex';
     createExplosion(W/2,H/3,'#ff4400',60);createExplosion(W/2-50,H/3+30,'#ff8800',40);createExplosion(W/2+50,H/3-20,'#ffcc00',30);
     game.screenShake=0;playSound('victory');
+    recordGameResult(game.score, true, game.currentLevel);
     unlockNextLevel();
     return;
   }
@@ -401,6 +403,7 @@ function checkBossDefeated() {
     victoryScreen.style.display='flex';
     createExplosion(W/2,H/3,'#ff4400',60);createExplosion(W/2-50,H/3+30,'#ff8800',40);createExplosion(W/2+50,H/3-20,'#ffcc00',30);
     game.screenShake=0;playSound('victory');
+    recordGameResult(game.score, true, game.currentLevel);
     unlockNextLevel();
   } else {
     // 还有BOSS，继续召唤
@@ -411,6 +414,7 @@ function gameOver() {
   game.running=false;game.over=true;
   finalScore.textContent=game.score;finalKills.textContent=game.kills;finalTotal.textContent=game.totalEnemies;
   gameOverScreen.style.display='flex';createExplosion(player.x,player.y,'#ff0000',40);game.screenShake=0;playSound('gameover');
+  recordGameResult(game.score, false, game.currentLevel);
 }
 function playerTakeDamage(dmg) {
   if(player.invincible>0||game.trainingMode)return;
@@ -756,9 +760,10 @@ function gameLoop(){if(!game.started)return;update();if(game.trainingMode)update
 if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.quadraticCurveTo(x+w,y,x+w,y+r);this.lineTo(x+w,y+h-r);this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);this.lineTo(x+r,y+h);this.quadraticCurveTo(x,y+h,x,y+h-r);this.lineTo(x,y+r);this.quadraticCurveTo(x,y,x+r,y);this.closePath();};}
 
 document.addEventListener('keydown',(e)=>{
-  // 检查是否在输入密码，如果是则不处理游戏按键
+  // 检查是否在输入框中，如果是则不处理游戏按键
   if(e.target.tagName==='INPUT'&&e.target.type==='password')return;
   if(e.target.tagName==='INPUT'&&e.target.type==='text')return;
+  if(e.target.tagName==='TEXTAREA')return;
   if(e.key==='a'||e.key==='A'||e.key==='ArrowLeft')keys.left=true;
   if(e.key==='d'||e.key==='D'||e.key==='ArrowRight')keys.right=true;
   if(e.key===' '){keys.space=true;e.preventDefault();}
@@ -771,9 +776,10 @@ document.addEventListener('keydown',(e)=>{
   }
 });
 document.addEventListener('keyup',(e)=>{
-  // 检查是否在输入密码，如果是则不处理游戏按键
+  // 检查是否在输入框中，如果是则不处理游戏按键
   if(e.target.tagName==='INPUT'&&e.target.type==='password')return;
   if(e.target.tagName==='INPUT'&&e.target.type==='text')return;
+  if(e.target.tagName==='TEXTAREA')return;
   if(e.key==='a'||e.key==='A'||e.key==='ArrowLeft')keys.left=false;
   if(e.key==='d'||e.key==='D'||e.key==='ArrowRight')keys.right=false;
   if(e.key===' '){keys.space=false;e.preventDefault();}
@@ -863,7 +869,7 @@ document.getElementById('modeTrainBtn').addEventListener('click',()=>setMode(fal
 document.getElementById('startBtn').addEventListener('click',()=>{initAudio();startScreen.style.display='none';game.started=true;resetGame();if(bgmEnabled)bgm.start();syncBgmToggleUI();setTimeout(fitGame,50);gameLoop();});
 document.getElementById('restartBtn').addEventListener('click',()=>{gameOverScreen.style.display='none';resetGame();});
 document.getElementById('victoryRestartBtn').addEventListener('click',()=>{victoryScreen.style.display='none';resetGame();});
-function goToMenu(){gameOverScreen.style.display='none';victoryScreen.style.display='none';game.started=false;game.running=false;bgm.stop();startScreen.style.display='flex';renderLevelSelector();}
+function goToMenu(){gameOverScreen.style.display='none';victoryScreen.style.display='none';game.started=false;game.running=false;bgm.stop();startScreen.style.display='flex';updateUsernameDisplay();renderLevelSelector();}
 document.getElementById('gameOverMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('victoryMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('trainExitBtn').addEventListener('click',goToMenu);
@@ -872,6 +878,35 @@ document.getElementById('aiTeammateMid').addEventListener('click',function(){if(
 document.getElementById('aiTeammateHigh').addEventListener('click',function(){if(this.classList.contains('active')){this.classList.remove('active');return;}document.querySelectorAll('#aiTeammateLow,#aiTeammateMid,#aiTeammateHigh').forEach(b=>b.classList.remove('active'));this.classList.add('active');});
 document.querySelectorAll('.preset').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.preset').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('enemyCountInput').value=btn.dataset.count;});});
 document.getElementById('enemyCountInput').addEventListener('input',()=>{document.querySelectorAll('.preset').forEach(b=>b.classList.remove('active'));});
+
+// 更新用户名显示
+function updateUsernameDisplay() {
+  const usernameDisplay = document.getElementById('usernameDisplay');
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (usernameDisplay) {
+    usernameDisplay.textContent = currentUser ? `👤 ${currentUser}${isAdmin?' (管理员)':''}` : '👤 未登录';
+  }
+}
+
+// 退出登录（切换用户）
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  // 保存当前用户数据
+  if (currentUser) {
+    const userData = getUserData(currentUser);
+    userData.unlockedLevel = game.unlockedLevel;
+    userData.currentLevel = game.currentLevel;
+    userData.rank = game.rank;
+    userData.rankScore = game.rankScore;
+    saveUserData(currentUser, userData);
+  }
+  // 清除当前用户，返回登录界面
+  currentUser = null;
+  isAdmin = false;
+  localStorage.removeItem(CURRENT_USER_KEY);
+  startScreen.style.display = 'none';
+  loginScreen.style.display = 'flex';
+  document.getElementById('loginPassword').value = '';
+});
 
 // ==================== 关卡系统 ====================
 function renderLevelSelector(){
@@ -904,20 +939,100 @@ function updateLevelUI(){
 // ==================== 密码登录系统 ====================
 const PASSWORD_KEY = 'battle_shooter_password';
 const PASSWORD_HINT_KEY = 'battle_shooter_password_hint';
+const USERNAME_KEY = 'battle_shooter_username';
+const USERS_DATA_KEY = 'battle_shooter_users_data';
+const CURRENT_USER_KEY = 'battle_shooter_current_user';
+const ADMIN_USERNAME = 'admin'; // 管理员用户名，可以修改
+
 const loginScreen = document.getElementById('loginScreen');
 const setPasswordScreen = document.getElementById('setPasswordScreen');
+const usernameScreen = document.getElementById('usernameScreen');
+
+let currentUser = null;
+let isAdmin = false;
+
+// 用户数据管理
+function getUserData(username) {
+  const allData = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
+  return allData[username] || {
+    username: username,
+    totalScore: 0,
+    highScore: 0,
+    gamesPlayed: 0,
+    gamesWon: 0,
+    unlockedLevel: 1,
+    currentLevel: 1,
+    rank: 'bronze',
+    rankScore: 0,
+    playHistory: []
+  };
+}
+
+function saveUserData(username, data) {
+  const allData = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
+  allData[username] = data;
+  localStorage.setItem(USERS_DATA_KEY, JSON.stringify(allData));
+}
+
+function setCurrentUser(username) {
+  currentUser = username;
+  isAdmin = (username === ADMIN_USERNAME);
+  localStorage.setItem(CURRENT_USER_KEY, username);
+
+  // 加载用户进度
+  const userData = getUserData(username);
+  game.unlockedLevel = userData.unlockedLevel;
+  game.currentLevel = userData.currentLevel;
+  game.rank = userData.rank;
+  game.rankScore = userData.rankScore;
+}
+
+function recordGameResult(score, won, level) {
+  if (!currentUser) return;
+  const userData = getUserData(currentUser);
+  userData.totalScore += score;
+  userData.highScore = Math.max(userData.highScore, score);
+  userData.gamesPlayed++;
+  if (won) userData.gamesWon++;
+  userData.playHistory.push({
+    date: new Date().toISOString(),
+    score: score,
+    won: won,
+    level: level
+  });
+  // 只保留最近50条记录
+  if (userData.playHistory.length > 50) {
+    userData.playHistory = userData.playHistory.slice(-50);
+  }
+  // 保存进度
+  userData.unlockedLevel = game.unlockedLevel;
+  userData.currentLevel = game.currentLevel;
+  userData.rank = game.rank;
+  userData.rankScore = game.rankScore;
+  saveUserData(currentUser, userData);
+}
 
 function checkPassword() {
   const savedPassword = localStorage.getItem(PASSWORD_KEY);
+  const savedUsername = localStorage.getItem(USERNAME_KEY);
+
   if (!savedPassword) {
     // 首次进入，需要设置密码
     loginScreen.style.display = 'none';
     setPasswordScreen.style.display = 'flex';
+    usernameScreen.style.display = 'none';
+    startScreen.style.display = 'none';
+  } else if (!savedUsername) {
+    // 有密码但没用户名，需要设置用户名
+    loginScreen.style.display = 'none';
+    setPasswordScreen.style.display = 'none';
+    usernameScreen.style.display = 'flex';
     startScreen.style.display = 'none';
   } else {
-    // 已有密码，显示登录界面
+    // 已有密码和用户名，显示登录界面
     loginScreen.style.display = 'flex';
     setPasswordScreen.style.display = 'none';
+    usernameScreen.style.display = 'none';
     startScreen.style.display = 'none';
   }
 }
@@ -947,9 +1062,32 @@ document.getElementById('setPasswordBtn').addEventListener('click', () => {
     localStorage.setItem(PASSWORD_HINT_KEY, hint);
   }
 
-  // 进入游戏主界面
+  // 进入用户名设置界面
   setPasswordScreen.style.display = 'none';
+  usernameScreen.style.display = 'flex';
+});
+
+// 设置用户名
+document.getElementById('setUsernameBtn').addEventListener('click', () => {
+  const username = document.getElementById('usernameInput').value.trim();
+  const errorEl = document.getElementById('usernameError');
+
+  if (username.length < 2) {
+    errorEl.textContent = '用户名至少需要2位字符';
+    return;
+  }
+  if (username.length > 20) {
+    errorEl.textContent = '用户名不能超过20位字符';
+    return;
+  }
+
+  localStorage.setItem(USERNAME_KEY, username);
+  setCurrentUser(username);
+
+  // 进入游戏主界面
+  usernameScreen.style.display = 'none';
   startScreen.style.display = 'flex';
+  updateUsernameDisplay();
   renderLevelSelector();
 });
 
@@ -957,16 +1095,22 @@ document.getElementById('setPasswordBtn').addEventListener('click', () => {
 document.getElementById('loginBtn').addEventListener('click', () => {
   const inputPwd = document.getElementById('loginPassword').value;
   const savedPassword = localStorage.getItem(PASSWORD_KEY);
+  const savedUsername = localStorage.getItem(USERNAME_KEY);
   const hintEl = document.getElementById('loginHintText');
 
   if (inputPwd === savedPassword) {
-    // 密码正确，进入游戏
+    // 密码正确，加载用户数据
+    if (savedUsername) {
+      setCurrentUser(savedUsername);
+    }
     loginScreen.style.display = 'none';
     startScreen.style.display = 'flex';
     document.getElementById('loginPassword').value = '';
     hintEl.textContent = '';
     loadProgress();
+    updateUsernameDisplay();
     renderLevelSelector();
+    checkNewFeedback();
   } else {
     hintEl.textContent = '密码错误，请重试';
     hintEl.style.color = '#ff6666';
@@ -1012,7 +1156,8 @@ function saveFeedback(text) {
     text: text,
     time: new Date().toISOString(),
     level: game.currentLevel,
-    score: game.score
+    score: game.score,
+    username: currentUser || '匿名用户'
   };
   let allFeedback = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
   allFeedback.push(feedback);
@@ -1020,6 +1165,8 @@ function saveFeedback(text) {
 }
 
 function getUnreadFeedbackCount() {
+  // 只有管理员才能看到未读反馈
+  if (!isAdmin) return 0;
   const allFeedback = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
   const lastRead = parseInt(localStorage.getItem(FEEDBACK_READ_KEY) || '0');
   return allFeedback.filter(f => new Date(f.time).getTime() > lastRead).length;
@@ -1030,10 +1177,13 @@ function markFeedbackAsRead() {
 }
 
 function getAllFeedback() {
+  // 只有管理员才能查看所有反馈
+  if (!isAdmin) return [];
   return JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
 }
 
 function clearAllFeedback() {
+  if (!isAdmin) return;
   localStorage.removeItem(FEEDBACK_KEY);
   localStorage.removeItem(FEEDBACK_READ_KEY);
 }
@@ -1068,6 +1218,11 @@ document.getElementById('devNotifClose').addEventListener('click', () => {
 
 // 检查是否有新反馈（开发者模式）
 function checkNewFeedback() {
+  // 只有管理员才显示通知
+  if (!isAdmin) {
+    document.getElementById('devNotification').style.display = 'none';
+    return;
+  }
   const unread = getUnreadFeedbackCount();
   if (unread > 0) {
     const notif = document.getElementById('devNotification');
@@ -1078,6 +1233,11 @@ function checkNewFeedback() {
 
 // 点击通知查看反馈
 document.getElementById('devNotification').addEventListener('click', () => {
+  // 只有管理员才能查看
+  if (!isAdmin) {
+    alert('只有管理员可以查看反馈');
+    return;
+  }
   const feedbackList = getAllFeedback();
   if (feedbackList.length === 0) {
     alert('暂无反馈');
@@ -1087,7 +1247,8 @@ document.getElementById('devNotification').addEventListener('click', () => {
   let msg = `共 ${feedbackList.length} 条反馈：\n\n`;
   feedbackList.slice(-10).reverse().forEach((f, i) => {
     const time = new Date(f.time).toLocaleString('zh-CN');
-    msg += `[${time}] 第${f.level}关 得分${f.score}\n`;
+    msg += `[${time}] 用户: ${f.username}\n`;
+    msg += `关卡: ${f.level} 得分: ${f.score}\n`;
     msg += `反馈: ${f.text}\n\n`;
   });
 
@@ -1102,18 +1263,70 @@ setTimeout(checkNewFeedback, 1000);
 // ==================== 开发者命令 ====================
 // 在控制台输入 showFeedback() 查看所有反馈
 window.showFeedback = function() {
+  if (!isAdmin) {
+    console.log('只有管理员可以查看反馈');
+    return '权限不足';
+  }
   const feedbackList = getAllFeedback();
   console.log('=== 所有反馈 ===');
   feedbackList.forEach((f, i) => {
-    console.log(`${i+1}. [${new Date(f.time).toLocaleString('zh-CN')}] 第${f.level}关`);
+    console.log(`${i+1}. [${new Date(f.time).toLocaleString('zh-CN')}] 用户: ${f.username}`);
+    console.log(`   关卡: ${f.level} 得分: ${f.score}`);
     console.log(`   反馈: ${f.text}`);
-    console.log(`   得分: ${f.score}`);
   });
   return `共 ${feedbackList.length} 条反馈`;
 };
 
 // 清空反馈
 window.clearFeedback = clearAllFeedback;
+
+// 查看所有用户数据（管理员）
+window.showAllUsers = function() {
+  if (!isAdmin) {
+    console.log('只有管理员可以查看用户数据');
+    return '权限不足';
+  }
+  const allData = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
+  console.log('=== 所有用户数据 ===');
+  Object.values(allData).forEach((user, i) => {
+    console.log(`${i+1}. ${user.username}`);
+    console.log(`   总分: ${user.totalScore} 最高分: ${user.highScore}`);
+    console.log(`   游戏: ${user.gamesPlayed}场 胜利: ${user.gamesWon}场`);
+    console.log(`   解锁关卡: ${user.unlockedLevel} 当前等级: ${user.rank}`);
+  });
+  return `共 ${Object.keys(allData).length} 位用户`;
+};
+
+// 查看当前用户数据
+window.showMyData = function() {
+  if (!currentUser) {
+    console.log('未登录');
+    return;
+  }
+  const userData = getUserData(currentUser);
+  console.log('=== 我的游戏数据 ===');
+  console.log(`用户名: ${userData.username}`);
+  console.log(`总分: ${userData.totalScore} 最高分: ${userData.highScore}`);
+  console.log(`游戏: ${userData.gamesPlayed}场 胜利: ${userData.gamesWon}场`);
+  console.log(`解锁关卡: ${userData.unlockedLevel}`);
+  console.log(`当前等级: ${userData.rank} (${userData.rankScore}分)`);
+  console.log(`最近10场:`);
+  userData.playHistory.slice(-10).reverse().forEach((h, i) => {
+    console.log(`  ${i+1}. ${new Date(h.date).toLocaleDateString()} 第${h.level}关 得分${h.score} ${h.won?'胜':'负'}`);
+  });
+  return userData;
+};
+
+// 设置管理员（在控制台输入 setAdmin("你的用户名") ）
+window.setAdmin = function(username) {
+  if (!username) {
+    console.log('用法: setAdmin("用户名")');
+    return;
+  }
+  // 修改ADMIN_USERNAME常量需要重新加载，这里只是提示
+  console.log(`请将代码中的 ADMIN_USERNAME 修改为 "${username}" 并刷新页面`);
+  console.log('当前管理员名:', ADMIN_USERNAME);
+};
 
 // 页面加载时检查密码
 checkPassword();

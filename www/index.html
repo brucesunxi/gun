@@ -71,6 +71,16 @@
     </div>
   </div>
 
+  <div id="usernameScreen" style="display:none;">
+    <h1>👤 设置用户名</h1>
+    <div class="login-box">
+      <p class="set-pwd-desc">请输入您的用户名（用于记录游戏数据）</p>
+      <input type="text" id="usernameInput" placeholder="用户名（2-20位）" maxlength="20">
+      <button class="login-btn" id="setUsernameBtn">确认进入</button>
+      <p id="usernameError" class="error-msg"></p>
+    </div>
+  </div>
+
   <div id="setPasswordScreen" style="display:none;">
     <h1>🔐 首次登录</h1>
     <div class="login-box">
@@ -86,6 +96,10 @@
   <div id="startScreen" style="display:none;">
     <h1>⚔ 战场射击 ⚔</h1>
     <div class="sub" id="startSub">—— 消灭全部敌人 ——</div>
+    <div id="userInfo" class="user-info">
+      <span id="usernameDisplay">👤 玩家</span>
+      <button id="logoutBtn">切换用户</button>
+    </div>
     <div id="startScreenRank" class="start-rank">🥉 青铜</div>
     <div class="controls">
       <kbd>A</kbd> <kbd>D</kbd> 或 ← → 移动 &nbsp;|&nbsp; <kbd>Space</kbd> 射击<br>

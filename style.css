@@ -236,6 +236,36 @@
     margin-bottom: 8px;
   }
   #startScreen .sub { font-size: 16px; color: #aaa; margin-bottom: 30px; }
+  /* User info */
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    border: 1px solid #444;
+  }
+  #usernameDisplay {
+    color: #8aa84a;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  #logoutBtn {
+    padding: 4px 12px;
+    font-size: 12px;
+    font-family: inherit;
+    background: transparent;
+    color: #888;
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  #logoutBtn:hover {
+    color: #fff;
+    border-color: #aaa;
+  }
   #startScreen .controls {
     background: rgba(255,255,255,0.05);
     padding: 20px 32px;
