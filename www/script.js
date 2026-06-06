@@ -1234,13 +1234,11 @@ function hideFeedbackBtn(){
   if(btn) btn.style.display = 'none';
 }
 
-// 反馈按钮事件 - 使用事件委托，确保即使动态创建也能工作
-document.addEventListener('click', (e) => {
-  if(e.target.id === 'feedbackBtn' || e.target.closest('.feedback-btn')){
-    document.getElementById('feedbackOverlay').style.display = 'flex';
-    const ft = document.getElementById('feedbackText');
-    if(ft) ft.focus();
-  }
+// 反馈按钮事件
+document.getElementById('feedbackBtn').addEventListener('click', function(){
+  document.getElementById('feedbackOverlay').style.display = 'flex';
+  const ft = document.getElementById('feedbackText');
+  if(ft) setTimeout(()=>ft.focus(), 100);
 });
 
 document.getElementById('feedbackClose').addEventListener('click', () => {
