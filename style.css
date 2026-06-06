@@ -558,7 +558,6 @@
     position: absolute;
     inset: 0;
     background: rgba(0,0,0,0.8);
-    display: none;
     justify-content: center;
     align-items: center;
     z-index: 100;
