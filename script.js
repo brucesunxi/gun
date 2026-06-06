@@ -246,10 +246,14 @@ function saveProgress(){
   localStorage.setItem(LEVEL_KEY,JSON.stringify({unlockedLevel:game.unlockedLevel,currentLevel:game.currentLevel}));
 }
 function unlockNextLevel(){
+  // 先解锁下一关
   if(game.currentLevel>=game.unlockedLevel&&game.currentLevel<8){
     game.unlockedLevel=game.currentLevel+1;
-    game.currentLevel=game.unlockedLevel;
     saveProgress();
+  }
+  // 然后自动选择下一关（如果不是最后一关）
+  if(game.currentLevel<8){
+    game.currentLevel=game.currentLevel+1;
   }
 }
 function selectLevel(lvl){
