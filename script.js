@@ -1170,6 +1170,15 @@ document.getElementById('firstTimeLink').addEventListener('click', (e) => {
   setPasswordScreen.style.display = 'flex';
 });
 
+// 清除所有本地数据
+document.getElementById('clearDataLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  if (confirm('确定要清除所有本地数据吗？\n\n这将删除所有用户信息和游戏记录。')) {
+    localStorage.clear();
+    location.reload();
+  }
+});
+
 // 设置密码时回车键
 document.getElementById('confirmPassword').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
