@@ -186,6 +186,32 @@ const game = {
   particles:[],bullets:[],enemies:[],supplies:[],stars:[],
   shellCasings:[],muzzleFlashes:[],boss:null,bossActive:false,
   aiTeammateEnabled:null,aiTeammate:null,aiTeammateLevel:'mid',
+  rank:'bronze',rankScore:0,
+};
+
+// 等级系统
+const rankSystem = {
+  levels: [
+    {name:'bronze',title:'🥉 青铜',color:'#cd7f32',next:100,bonus:1},
+    {name:'silver',title:'🥈 白银',color:'#c0c0c0',next:300,bonus:1.1},
+    {name:'obsidian',title:'🖤 黑曜石',color:'#4a0080',next:600,bonus:1.2},
+    {name:'diamond',title:'💎 钻石',color:'#00ffff',next:1000,bonus:1.3},
+    {name:'veteran',title:'⚔️ 老兵',color:'#ff4444',next:1500,bonus:1.4},
+    {name:'king',title:'👑 王者',color:'#ffd700',next:2500,bonus:1.5},
+    {name:'trophy',title:'🏆 奖杯',color:'#ff6600',next:999999,bonus:2}
+  ],
+  getCurrent(){return this.levels.find(l=>l.name===game.rank)||this.levels[0];},
+  getNext(){const idx=this.levels.findIndex(l=>l.name===game.rank);return this.levels[Math.min(idx+1,this.levels.length-1)];},
+  checkUpgrade(){
+    const idx=this.levels.findIndex(l=>l.name===game.rank);
+    const next=this.levels[idx+1];
+    if(next&&game.rankScore>=next.next){
+      game.rank=next.name;
+      return next;
+    }
+    return null;
+  },
+  getBonus(){return this.getCurrent().bonus;}
 };
 const player = {
   x:W/2,y:H-70,w:32,h:44,speed:4,hp:100,maxHp:100,shootCooldown:0,weapon:'pistol',
@@ -302,10 +328,29 @@ function playerTakeDamage(dmg) {
   if(player.hp<=0){player.hp=0;gameOver();}
   updateUI();
 }
-function updateUI() {
+function addScore(points){
+  const bonus=rankSystem.getBonus();
+  const finalPoints=Math.round(points*bonus);
+  game.score+=finalPoints;
+  game.rankScore+=finalPoints;
+  // 检查升级
+  const upgraded=rankSystem.checkUpgrade();
+  if(upgraded){
+    waveInfo.textContent='🎉 升级！'+upgraded.title;
+    waveInfo.style.color=upgraded.color;
+    waveInfo.style.opacity='1';
+    setTimeout(()=>{waveInfo.style.opacity='0';waveInfo.style.color='#ffd700';},2000);
+  }
+}
   scoreEl.textContent=game.score;livesEl.textContent=game.lives;killsEl.textContent=game.kills;
   remainingEl.textContent=Math.max(0,game.totalEnemies-game.kills);totalEl.textContent=game.totalEnemies;
   document.getElementById('uiCenter').style.display=game.trainingMode?'none':'';
+  // 更新等级显示
+  const rank=rankSystem.getCurrent();
+  const rankEl=document.getElementById('rankDisplay');
+  rankEl.textContent=rank.title;
+  rankEl.className=rank.name;
+  rankEl.style.color=rank.color;
 }
 function updateTrainingStats() {
   const acc=game.shotsFired>0?Math.round(game.hits/game.shotsFired*100):0;
@@ -415,6 +460,7 @@ function resetGame() {
   game.trainingMode=document.getElementById('modeTrainBtn').classList.contains('active');
   game.aiTeammateEnabled=document.getElementById('aiTeammateLow').classList.contains('active')?'low':(document.getElementById('aiTeammateHigh').classList.contains('active')?'high':(document.getElementById('aiTeammateMid').classList.contains('active')?'mid':null));
   game.score=0;game.lives=3;game.kills=0;game.enemiesSpawned=0;game.shotsFired=0;game.hits=0;game.combo=0;game.maxCombo=0;
+  game.rank='bronze';game.rankScore=0;
   game.frame=0;game.particles=[];game.bullets=[];game.enemies=[];game.supplies=[];game.shellCasings=[];game.muzzleFlashes=[];
   game.screenShake=0;game.enemySpawnTimer=0;game.enemySpawnInterval=90;
   game.maxEnemiesOnScreen=game.trainingMode?6:Math.min(4,Math.ceil(game.totalEnemies/3));
@@ -580,10 +626,10 @@ function update() {
     const b=game.bullets[i];b.trail.push({x:b.x,y:b.y});if(b.trail.length>5)b.trail.shift();b.x+=b.vx;b.y+=b.vy;
     if(b.x<-20||b.x>W+20||b.y<-20||b.y>H+20){game.bullets.splice(i,1);continue;}
     if(b.enemyBullet){if(dist(b,player)<15){playerTakeDamage(b.damage);game.bullets.splice(i,1);createExplosion(b.x,b.y,'#ff4444',5);continue;}if(aiTeammate.active&&dist(b,aiTeammate)<15){aiTeammateTakeDamage(b.damage);game.bullets.splice(i,1);createExplosion(b.x,b.y,'#ff4444',5);continue;}}
-    else if(game.bossActive&&game.boss&&Math.abs(b.x-game.boss.x)<game.boss.w*0.5&&Math.abs(b.y-game.boss.y)<game.boss.h*0.5){game.boss.hp-=b.damage*0.8;game.bullets.splice(i,1);createExplosion(b.x,b.y,'#ff8800',8);playSound('enemy_hit');if(game.boss.hp<=0){game.boss.hp=0;game.score+=50;checkBossDefeated();}}
-    else{for(let j=game.enemies.length-1;j>=0;j--){const e=game.enemies[j],hw=e.isTarget?e.w*0.5:20,hh=e.isTarget?e.h*0.5:25;if(Math.abs(b.x-e.x)<hw&&Math.abs(b.y-e.y)<hh){e.hp-=b.damage;game.bullets.splice(i,1);if(e.isTarget){game.hits++;if(e.hp<=0){game.combo++;if(game.combo>game.maxCombo)game.maxCombo=game.combo;game.score+=e.points*(1+Math.floor(game.combo/5)*0.5);game.kills++;createExplosion(e.x,e.y,'#88ddff',15);playSound('explosion');if(game.combo>1){waveInfo.textContent='\u{1F525} '+game.combo+' 连击！';waveInfo.style.opacity='1';setTimeout(()=>{waveInfo.style.opacity='0';},600);}game.enemies.splice(j,1);updateTrainingStats();}else{createExplosion(b.x,b.y,'#88ddff',5);playSound('enemy_hit');}}else{createExplosion(b.x,b.y,'#ffaa44',5);playSound('enemy_hit');if(e.hp<=0){game.score+=10;game.kills++;createExplosion(e.x,e.y,'#ff6600',25);playSound('explosion');if(Math.random()<0.08)spawnSupply();game.enemies.splice(j,1);updateUI();if(game.kills>=game.totalEnemies&&!game.bossActive&&!game.trainingMode)triggerBoss();}}break;}}}
+    else if(game.bossActive&&game.boss&&Math.abs(b.x-game.boss.x)<game.boss.w*0.5&&Math.abs(b.y-game.boss.y)<game.boss.h*0.5){game.boss.hp-=b.damage*0.8;game.bullets.splice(i,1);createExplosion(b.x,b.y,'#ff8800',8);playSound('enemy_hit');if(game.boss.hp<=0){game.boss.hp=0;addScore(50);checkBossDefeated();}}
+    else{for(let j=game.enemies.length-1;j>=0;j--){const e=game.enemies[j],hw=e.isTarget?e.w*0.5:20,hh=e.isTarget?e.h*0.5:25;if(Math.abs(b.x-e.x)<hw&&Math.abs(b.y-e.y)<hh){e.hp-=b.damage;game.bullets.splice(i,1);if(e.isTarget){game.hits++;if(e.hp<=0){game.combo++;if(game.combo>game.maxCombo)game.maxCombo=game.combo;addScore(Math.round(e.points*(1+Math.floor(game.combo/5)*0.5)));game.kills++;createExplosion(e.x,e.y,'#88ddff',15);playSound('explosion');if(game.combo>1){waveInfo.textContent='\u{1F525} '+game.combo+' 连击！';waveInfo.style.opacity='1';setTimeout(()=>{waveInfo.style.opacity='0';},600);}game.enemies.splice(j,1);updateTrainingStats();}else{createExplosion(b.x,b.y,'#88ddff',5);playSound('enemy_hit');}}else{createExplosion(b.x,b.y,'#ffaa44',5);playSound('enemy_hit');if(e.hp<=0){addScore(10);game.kills++;createExplosion(e.x,e.y,'#ff6600',25);playSound('explosion');if(Math.random()<0.08)spawnSupply();game.enemies.splice(j,1);updateUI();if(game.kills>=game.totalEnemies&&!game.bossActive&&!game.trainingMode)triggerBoss();}}break;}}}
   }
-  for(let i=game.supplies.length-1;i>=0;i--){const s=game.supplies[i];s.y+=s.speed;if(dist(s,player)<28){if(player.weapon==='pistol'){player.weapon='rifle';weaponInfo.textContent='\u{1F52B} 步枪 (25·连发)';}else if(player.weapon==='rifle'){player.weapon='shotgun';weaponInfo.textContent='\u{1F52B} 霰弹枪 (15×6·散射)';}else if(player.weapon==='shotgun'){player.weapon='sniper';weaponInfo.textContent='\u{1F3AF} 狙击枪 (60·远程)';}game.score+=20;updateUI();playSound('pickup');createExplosion(s.x,s.y,'#ffd700',15);game.supplies.splice(i,1);continue;}if(s.y>H+30)game.supplies.splice(i,1);}
+  for(let i=game.supplies.length-1;i>=0;i--){const s=game.supplies[i];s.y+=s.speed;if(dist(s,player)<28){if(player.weapon==='pistol'){player.weapon='rifle';weaponInfo.textContent='\u{1F52B} 步枪 (25·连发)';}else if(player.weapon==='rifle'){player.weapon='shotgun';weaponInfo.textContent='\u{1F52B} 霰弹枪 (15×6·散射)';}else if(player.weapon==='shotgun'){player.weapon='sniper';weaponInfo.textContent='\\\u{1F3AF} 狙击枪 (60·远程)';}addScore(20);updateUI();playSound('pickup');createExplosion(s.x,s.y,'#ffd700',15);game.supplies.splice(i,1);continue;}if(s.y>H+30)game.supplies.splice(i,1);}
   for(let i=game.particles.length-1;i>=0;i--){const p=game.particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.1;p.life--;if(p.life<=0)game.particles.splice(i,1);}
   for(let i=game.muzzleFlashes.length-1;i>=0;i--){game.muzzleFlashes[i].life--;if(game.muzzleFlashes[i].life<=0)game.muzzleFlashes.splice(i,1);}
   for(let i=game.shellCasings.length-1;i>=0;i--){const s=game.shellCasings[i];s.x+=s.vx;s.y+=s.vy;s.vy+=0.2;s.rotation+=0.1;s.life--;if(s.life<=0)game.shellCasings.splice(i,1);}
