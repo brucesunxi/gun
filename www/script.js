@@ -348,7 +348,16 @@ function enemyShoot(enemy) {
 function triggerBoss() {
   if(game.bossActive||game.trainingMode)return;
   const cfg=game.levelConfig||levelSystem.getCurrent();
-  if(!cfg.hasBoss)return;
+  if(!cfg.hasBoss){
+    // 没有BOSS的关卡，直接胜利
+    game.running=false;game.won=true;game.zoomed=false;
+    vicScore.textContent=game.score;vicTotal.textContent=game.totalEnemies;
+    victoryScreen.style.display='flex';
+    createExplosion(W/2,H/3,'#ffd700',50);
+    playSound('victory');
+    unlockNextLevel();
+    return;
+  }
   game.bossActive=true;
   waveInfo.textContent='\u{1F480} BOSS 登场！';waveInfo.style.opacity='1';waveInfo.style.color='#ff4444';waveInfo.style.fontSize='42px';
   setTimeout(()=>{waveInfo.style.opacity='0';waveInfo.style.color='#ffd700';waveInfo.style.fontSize='36px';},2000);
