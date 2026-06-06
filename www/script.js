@@ -1017,20 +1017,12 @@ function recordGameResult(score, won, level) {
 function checkPassword() {
   hideFeedbackBtn();
   hideGameUI();
-  const savedPassword = localStorage.getItem(PASSWORD_KEY);
-  if (!savedPassword) {
-    // 首次进入，需要设置密码
-    loginScreen.style.display = 'none';
-    setPasswordScreen.style.display = 'flex';
-    usernameScreen.style.display = 'none';
-    startScreen.style.display = 'none';
-  } else {
-    // 已有密码，显示登录界面（需要同时输入用户名和密码）
-    loginScreen.style.display = 'flex';
-    setPasswordScreen.style.display = 'none';
-    usernameScreen.style.display = 'none';
-    startScreen.style.display = 'none';
-  }
+  // 无论是否注册过，都先显示登录页面
+  // 新用户点击"首次使用？"进入注册
+  loginScreen.style.display = 'flex';
+  setPasswordScreen.style.display = 'none';
+  usernameScreen.style.display = 'none';
+  startScreen.style.display = 'none';
 }
 
 // 设置密码（注册流程：用户名+密码一次完成）

@@ -25,13 +25,13 @@
     <div>🎯 击杀 <span id="kills">0</span></div>
   </div>
   <div id="rankDisplay" style="display:none">🥉 青铜战士</div>
-  <div class="weapon-info" id="weaponInfo">🔫 手枪 (18伤害)</div>
-  <div id="touchZoomBtn" class="touch-zoom">🔭</div>
-  <button class="train-exit-btn" id="trainExitBtn" style="display:none;">🚪 退出训练</button>
-  <div id="trainStats">🎯 命中率: 0%<br>连击: 0</div>
-  <button class="shop-btn" id="shopBtn">🏪 商店</button>
-  <button class="sound-toggle" id="soundToggle">🔊 音效</button>
-  <button class="bgm-toggle" id="bgmToggle">🎵 BGM</button>
+  <div class="weapon-info" id="weaponInfo" style="display:none">🔫 手枪 (18伤害)</div>
+  <div id="touchZoomBtn" class="touch-zoom" style="display:none">🔭</div>
+  <button class="train-exit-btn" id="trainExitBtn" style="display:none">🚪 退出训练</button>
+  <div id="trainStats" style="display:none">🎯 命中率: 0%<br>连击: 0</div>
+  <button class="shop-btn" id="shopBtn" style="display:none">🏪 商店</button>
+  <button class="sound-toggle" id="soundToggle" style="display:none">🔊 音效</button>
+  <button class="bgm-toggle" id="bgmToggle" style="display:none">🎵 BGM</button>
   <button class="feedback-btn" id="feedbackBtn" style="display:none;position:fixed;bottom:120px;right:16px;z-index:99999;color:#ffd700;font-size:16px;cursor:pointer;background:#333;border:2px solid #ffd700;border-radius:6px;padding:6px 14px;font-family:inherit;">💬 反馈</button>
   <div id="feedbackOverlay" style="display:none;">
     <div class="feedback-panel">
@@ -158,7 +158,7 @@
     <button class="menu-btn" id="victoryMenuBtn">返回主菜单</button>
   </div>
 </div>
-<script src="script.js?v=1022"></script>
+<script src="script.js?v=1023"></script>
 <script>
   // 注册 Service Worker
   if ('serviceWorker' in navigator) {
