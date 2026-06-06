@@ -1,10 +1,5 @@
-const CACHE_NAME = 'battlefield-shooter-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/script.js'
-];
+const CACHE_NAME = 'battlefield-shooter-v2';
+const urlsToCache = []; // 不自动缓存任何文件
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
