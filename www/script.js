@@ -197,10 +197,10 @@ const levelSystem = {
     {level:2,name:'初上战场',enemies:8,spawnInterval:90,enemyHp:20,enemySpeed:1.0,hasBoss:false,desc:'8名敌人，基础难度'},
     {level:3,name:'激烈交火',enemies:12,spawnInterval:80,enemyHp:25,enemySpeed:1.1,hasBoss:false,desc:'12名敌人，速度提升'},
     {level:4,name:'重围突破',enemies:16,spawnInterval:70,enemyHp:30,enemySpeed:1.2,hasBoss:false,desc:'16名敌人，快速刷新'},
-    {level:5,name:'精英对决',enemies:20,spawnInterval:65,enemyHp:35,enemySpeed:1.3,hasBoss:true,bossHp:200,desc:'20名敌人+小BOSS'},
-    {level:6,name:'血腥战场',enemies:25,spawnInterval:60,enemyHp:40,enemySpeed:1.4,hasBoss:true,bossHp:300,desc:'25名敌人+强化BOSS'},
-    {level:7,name:'死亡峡谷',enemies:30,spawnInterval:55,enemyHp:45,enemySpeed:1.5,hasBoss:true,bossHp:450,desc:'30名敌人+双BOSS'},
-    {level:8,name:'终极决战',enemies:35,spawnInterval:50,enemyHp:50,enemySpeed:1.6,hasBoss:true,bossHp:600,desc:'35名敌人+终极BOSS'}
+    {level:5,name:'精英对决',enemies:20,spawnInterval:65,enemyHp:35,enemySpeed:1.3,hasBoss:true,bossHp:200,bossCount:1,desc:'20名敌人+小BOSS'},
+    {level:6,name:'血腥战场',enemies:25,spawnInterval:60,enemyHp:40,enemySpeed:1.4,hasBoss:true,bossHp:300,bossCount:1,desc:'25名敌人+强化BOSS'},
+    {level:7,name:'死亡峡谷',enemies:30,spawnInterval:55,enemyHp:45,enemySpeed:1.5,hasBoss:true,bossHp:350,bossCount:2,desc:'30名敌人+双BOSS'},
+    {level:8,name:'终极决战',enemies:35,spawnInterval:50,enemyHp:50,enemySpeed:1.6,hasBoss:true,bossHp:400,bossCount:3,desc:'35名敌人+三BOSS'}
   ],
   getCurrent(){return this.levels[game.currentLevel-1]||this.levels[0];},
   getConfig(lvl){return this.levels[Math.min(lvl-1,this.levels.length-1)];}
@@ -275,11 +275,11 @@ const shopItems = [
   {id:'rifle',name:'\u{1F52B} 步枪',desc:'伤害 25 · 高速连发',price:40,max:1,bought:false,apply() { if (player.weapon==='pistol') { player.weapon='rifle'; weaponInfo.textContent='\u{1F52B} 步枪 (25·连发)'; }}},
   {id:'shotgun',name:'\u{1F52B} 霰弹枪',desc:'15×6 散射 · 近战爆发',price:80,max:1,bought:false,apply() { if (player.weapon!=='shotgun') { player.weapon='shotgun'; weaponInfo.textContent='\u{1F52B} 霰弹枪 (15×6·散射)'; }}},
   {id:'sniper',name:'\u{1F3AF} 狙击枪',desc:'伤害 60 · 远程穿透',price:120,max:1,bought:false,apply() { player.weapon='sniper'; weaponInfo.textContent='\u{1F3AF} 狙击枪 (60·远程)'; }},
-  {id:'dmg1',name:'⚡ 伤害 Lv1',desc:'伤害 +25%',price:50,max:1,bought:false,apply() { player.damageMult*=1.25; }},
-  {id:'dmg2',name:'⚡ 伤害 Lv2',desc:'伤害再 +30%',price:80,max:1,bought:false,prereq:()=>shopItems.find(i=>i.id==='dmg1').bought,apply() { player.damageMult*=1.3; }},
-  {id:'rate',name:'\u{1F504} 射速提升',desc:'射击间隔 -20%',price:60,max:1,bought:false,apply() { player.fireRateMult*=0.8; }},
+  {id:'dmg1',name:'⚡ 伤害 Lv1',desc:'伤害 +25%',price:50,max:99,bought:0,apply() { player.damageMult*=1.25; }},
+  {id:'dmg2',name:'⚡ 伤害 Lv2',desc:'伤害再 +30%',price:80,max:99,bought:0,prereq:()=>shopItems.find(i=>i.id==='dmg1').bought,apply() { player.damageMult*=1.3; }},
+  {id:'rate',name:'\u{1F504} 射速提升',desc:'射击间隔 -20%',price:60,max:99,bought:0,apply() { player.fireRateMult*=0.8; }},
   {id:'heal',name:'❤️ 医疗包',desc:'恢复 50 HP',price:30,max:99,bought:0,apply() { player.hp=Math.min(player.maxHp,player.hp+50); }},
-  {id:'armor',name:'\u{1F6E1}️ 护甲',desc:'伤害减免 15%',price:70,max:1,bought:false,apply() { player.armor=Math.min(0.6,player.armor+0.15); }},
+  {id:'armor',name:'\u{1F6E1}️ 护甲',desc:'伤害减免 15%',price:70,max:99,bought:0,apply() { player.armor=Math.min(0.6,player.armor+0.15); }},
 ];
 function openShop() { if (game.trainingMode||game.over||game.won||!game.running) return; game.shopOpen=true; game.running=false; document.getElementById('shopOverlay').classList.add('open'); renderShopItems(); }
 function closeShop() { game.shopOpen=false; game.running=true; document.getElementById('shopOverlay').classList.remove('open'); }
@@ -287,13 +287,18 @@ function renderShopItems() {
   document.getElementById('shopCoin').textContent=game.score;
   const c=document.getElementById('shopItems'); c.innerHTML='';
   shopItems.forEach(item => {
-    const ok=!item.prereq||item.prereq(), bought=item.bought===true||item.bought>0, canAfford=game.score>=item.price&&!bought&&ok;
-    const div=document.createElement('div'); div.className='shop-item'+(bought?' bought':'');
+    const ok=!item.prereq||item.prereq();
+    // 武器类只能买一次，其他可以重复购买
+    const isWeapon=item.id==='rifle'||item.id==='shotgun'||item.id==='sniper';
+    const bought=item.bought===true||item.bought>0;
+    const canBuy=!isWeapon||!bought;
+    const canAfford=game.score>=item.price&&canBuy&&ok;
+    const div=document.createElement('div'); div.className='shop-item'+(bought&&isWeapon?' bought':'');
     const ns=document.createElement('span'); ns.className='name'; ns.textContent=item.name;
-    const ds=document.createElement('span'); ds.className='desc'; ds.textContent=item.desc+(bought?' (已购)':'');
-    const ps=document.createElement('span'); ps.className='price'+(canAfford?' afford':''); ps.textContent=bought?'✓':'$'+item.price;
+    const ds=document.createElement('span'); ds.className='desc'; ds.textContent=item.desc+(bought&&isWeapon?' (已购)':item.bought>0?' x'+item.bought:'');
+    const ps=document.createElement('span'); ps.className='price'+(canAfford?' afford':''); ps.textContent=!canBuy?'✓':'$'+item.price;
     div.appendChild(ns); div.appendChild(ds); div.appendChild(ps);
-    if (canAfford) div.addEventListener('click',()=>{ if(game.score<item.price)return; game.score-=item.price; item.apply(); if(item.max===1) item.bought=true; else item.bought=(item.bought||0)+1; updateUI(); renderShopItems(); });
+    if (canAfford) div.addEventListener('click',()=>{ if(game.score<item.price)return; game.score-=item.price; item.apply(); if(isWeapon) item.bought=true; else item.bought=(item.bought||0)+1; updateUI(); renderShopItems(); });
     c.appendChild(div);
   });
 }
@@ -354,7 +359,6 @@ function triggerBoss() {
   if(game.bossActive||game.trainingMode)return;
   const cfg=game.levelConfig||levelSystem.getCurrent();
   if(!cfg.hasBoss){
-    // 没有BOSS的关卡，直接胜利
     game.running=false;game.won=true;game.zoomed=false;
     vicScore.textContent=game.score;vicTotal.textContent=game.totalEnemies;
     victoryScreen.style.display='flex';
@@ -364,20 +368,44 @@ function triggerBoss() {
     return;
   }
   game.bossActive=true;
-  waveInfo.textContent='\u{1F480} BOSS 登场！';waveInfo.style.opacity='1';waveInfo.style.color='#ff4444';waveInfo.style.fontSize='42px';
+  const bossCount=cfg.bossCount||1;
+  const remainingBosses=bossCount-game.bossesDefeated;
+  if(remainingBosses<=0){
+    // 所有BOSS都被击败
+    game.running=false;game.won=true;game.zoomed=false;game.bossActive=false;
+    vicScore.textContent=game.score;vicTotal.textContent=game.totalEnemies+bossCount;
+    victoryScreen.style.display='flex';
+    createExplosion(W/2,H/3,'#ff4400',60);createExplosion(W/2-50,H/3+30,'#ff8800',40);createExplosion(W/2+50,H/3-20,'#ffcc00',30);
+    game.screenShake=0;playSound('victory');
+    unlockNextLevel();
+    return;
+  }
+  waveInfo.textContent='\u{1F480} BOSS '+game.bossesDefeated+'/'+bossCount+' 登场！';waveInfo.style.opacity='1';waveInfo.style.color='#ff4444';waveInfo.style.fontSize='42px';
   setTimeout(()=>{waveInfo.style.opacity='0';waveInfo.style.color='#ffd700';waveInfo.style.fontSize='36px';},2000);
   game.screenShake=15;
   const bossHp=Math.round(cfg.bossHp||250);
-  game.boss={x:W/2,y:-80,w:60,h:70,hp:bossHp,maxHp:bossHp,speed:0.8,dir:1,shootTimer:0,shootInterval:Math.max(30,60-game.currentLevel*3),phase:1,state:'enter',enterTimer:120,animFrame:0,animTimer:0};
+  // 多个BOSS时位置分散
+  const offsetX=remainingBosses>1?(game.bossesDefeated%2===0?-80:80):0;
+  game.boss={x:W/2+offsetX,y:-80,w:60,h:70,hp:bossHp,maxHp:bossHp,speed:0.8,dir:1,shootTimer:0,shootInterval:Math.max(25,55-game.currentLevel*3),phase:1,state:'enter',enterTimer:120,animFrame:0,animTimer:0};
 }
 function checkBossDefeated() {
   if(!game.bossActive||!game.boss||game.boss.hp>0)return;
-  game.bossActive=false;game.boss=null;game.running=false;game.won=true;game.zoomed=false;game.screenShake=0;
-  vicScore.textContent=game.score;vicTotal.textContent=game.totalEnemies+1;
-  victoryScreen.style.display='flex';
-  createExplosion(W/2,H/3,'#ff4400',60);createExplosion(W/2-50,H/3+30,'#ff8800',40);createExplosion(W/2+50,H/3-20,'#ffcc00',30);
-  game.screenShake=0;playSound('victory');
-  unlockNextLevel();
+  game.bossActive=false;game.boss=null;
+  game.bossesDefeated++;
+  const cfg=game.levelConfig||levelSystem.getCurrent();
+  const bossCount=cfg.bossCount||1;
+  if(game.bossesDefeated>=bossCount){
+    // 所有BOSS击败，胜利
+    game.running=false;game.won=true;game.zoomed=false;game.screenShake=0;
+    vicScore.textContent=game.score;vicTotal.textContent=game.totalEnemies+bossCount;
+    victoryScreen.style.display='flex';
+    createExplosion(W/2,H/3,'#ff4400',60);createExplosion(W/2-50,H/3+30,'#ff8800',40);createExplosion(W/2+50,H/3-20,'#ffcc00',30);
+    game.screenShake=0;playSound('victory');
+    unlockNextLevel();
+  } else {
+    // 还有BOSS，继续召唤
+    setTimeout(()=>{triggerBoss();},2000);
+  }
 }
 function gameOver() {
   game.running=false;game.over=true;
@@ -534,14 +562,17 @@ function resetGame() {
   game.frame=0;game.particles=[];game.bullets=[];game.enemies=[];game.supplies=[];game.shellCasings=[];game.muzzleFlashes=[];
   game.screenShake=0;game.enemySpawnTimer=0;game.enemySpawnInterval=game.trainingMode?90:cfg.spawnInterval;
   game.maxEnemiesOnScreen=game.trainingMode?6:Math.min(4,Math.ceil(cfg.enemies/3));
-  game.over=false;game.won=false;game.zoomed=false;game.bossActive=false;game.boss=null;
+  game.over=false;game.won=false;game.zoomed=false;game.bossActive=false;game.boss=null;game.bosses=[];game.bossesDefeated=0;
   game.levelConfig=cfg;
   keys.zoom=false;game.running=true;
-  player.x=W/2;player.hp=player.maxHp;player.weapon='pistol';player.damageMult=1;player.fireRateMult=1;player.armor=0;
+  // 血量部分恢复：恢复30%最大血量（最少20点），难度越高恢复越少
+  const hpRestore=Math.max(10,Math.round(player.maxHp*0.3));
+  player.x=W/2;player.hp=Math.min(player.maxHp,player.hp+hpRestore);player.weapon='pistol';player.damageMult=1;player.fireRateMult=1;player.armor=0;
   player.invincible=game.trainingMode?9999:60;player.shootCooldown=0;
   if(game.aiTeammateEnabled){initAITeammate(game.aiTeammateEnabled);}
   else{aiTeammate.active=false;}
-  shopItems.forEach(i=>{i.bought=false;if(i.id==='heal')i.bought=0;});
+  // 每关只重置武器购买状态，其他升级保留
+  shopItems.forEach(i=>{if(i.id==='rifle'||i.id==='shotgun'||i.id==='sniper')i.bought=false;});
   document.getElementById('trainStats').style.display=game.trainingMode?'block':'none';
   document.getElementById('trainExitBtn').style.display=game.trainingMode?'':'none';
   document.getElementById('shopBtn').style.display=game.trainingMode?'none':'';
@@ -836,9 +867,9 @@ function goToMenu(){gameOverScreen.style.display='none';victoryScreen.style.disp
 document.getElementById('gameOverMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('victoryMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('trainExitBtn').addEventListener('click',goToMenu);
-document.getElementById('aiTeammateLow').addEventListener('click',function(){document.querySelectorAll('#aiTeammateLow,#aiTeammateMid,#aiTeammateHigh').forEach(b=>b.classList.remove('active'));this.classList.add('active');});
-document.getElementById('aiTeammateMid').addEventListener('click',function(){document.querySelectorAll('#aiTeammateLow,#aiTeammateMid,#aiTeammateHigh').forEach(b=>b.classList.remove('active'));this.classList.add('active');});
-document.getElementById('aiTeammateHigh').addEventListener('click',function(){document.querySelectorAll('#aiTeammateLow,#aiTeammateMid,#aiTeammateHigh').forEach(b=>b.classList.remove('active'));this.classList.add('active');});
+document.getElementById('aiTeammateLow').addEventListener('click',function(){if(this.classList.contains('active')){this.classList.remove('active');return;}document.querySelectorAll('#aiTeammateLow,#aiTeammateMid,#aiTeammateHigh').forEach(b=>b.classList.remove('active'));this.classList.add('active');});
+document.getElementById('aiTeammateMid').addEventListener('click',function(){if(this.classList.contains('active')){this.classList.remove('active');return;}document.querySelectorAll('#aiTeammateLow,#aiTeammateMid,#aiTeammateHigh').forEach(b=>b.classList.remove('active'));this.classList.add('active');});
+document.getElementById('aiTeammateHigh').addEventListener('click',function(){if(this.classList.contains('active')){this.classList.remove('active');return;}document.querySelectorAll('#aiTeammateLow,#aiTeammateMid,#aiTeammateHigh').forEach(b=>b.classList.remove('active'));this.classList.add('active');});
 document.querySelectorAll('.preset').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.preset').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('enemyCountInput').value=btn.dataset.count;});});
 document.getElementById('enemyCountInput').addEventListener('input',()=>{document.querySelectorAll('.preset').forEach(b=>b.classList.remove('active'));});
 
