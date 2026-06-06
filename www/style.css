@@ -535,7 +535,6 @@
     border-radius: 4px;
     padding: 2px 8px;
     font-family: inherit;
-    display: none;
   }
   .feedback-btn:hover { border-color: #aaa; color: #fff; }
   /* Feedback Overlay */
