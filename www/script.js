@@ -557,7 +557,7 @@ function drawAITeammateHpBar(){
 }
 
 function resetGame() {
-  document.getElementById('feedbackBtn').style.display='block';
+  document.getElementById('feedbackBtn').style.setProperty('display', 'block', 'important');
   const cfg=levelSystem.getCurrent();
   game.trainingMode=document.getElementById('modeTrainBtn').classList.contains('active');
   game.aiTeammateEnabled=document.getElementById('aiTeammateLow').classList.contains('active')?'low':(document.getElementById('aiTeammateHigh').classList.contains('active')?'high':(document.getElementById('aiTeammateMid').classList.contains('active')?'mid':null));
