@@ -1269,16 +1269,28 @@ document.getElementById('devNotifClose').addEventListener('click', () => {
 
 // 检查是否有新反馈（开发者模式）
 function checkNewFeedback() {
-  // 只有管理员才显示通知
+  const notif = document.getElementById('devNotification');
+  const usernameDisplay = document.getElementById('usernameDisplay');
+
   if (!isAdmin) {
-    document.getElementById('devNotification').style.display = 'none';
+    if (notif) notif.style.display = 'none';
     return;
   }
   const unread = getUnreadFeedbackCount();
   if (unread > 0) {
-    const notif = document.getElementById('devNotification');
-    document.getElementById('devNotifText').textContent = `📩 有 ${unread} 条新反馈！`;
-    notif.style.display = 'block';
+    if (notif) {
+      document.getElementById('devNotifText').textContent = `📩 有 ${unread} 条新反馈！`;
+      notif.style.display = 'block';
+    }
+    // 同时在用户名旁显示提示
+    if (usernameDisplay) {
+      usernameDisplay.textContent = `👤 管理 (管理员) 📩${unread}条新反馈`;
+    }
+  } else {
+    if (notif) notif.style.display = 'none';
+    if (usernameDisplay && currentUser === ADMIN_USERNAME) {
+      usernameDisplay.textContent = '👤 管理 (管理员)';
+    }
   }
 }
 
