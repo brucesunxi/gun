@@ -344,7 +344,6 @@
   #startScreen ~ .weapon-info,
   #startScreen ~ #trainStats,
   #startScreen ~ .touch-zoom,
-  #startScreen ~ .feedback-btn,
   #startScreen ~ #ui,
   #startScreen ~ #touchZoomBtn { display: none !important; }
   /* Also hide UI elements during login */
@@ -354,7 +353,6 @@
   #loginScreen ~ .weapon-info,
   #loginScreen ~ #trainStats,
   #loginScreen ~ .touch-zoom,
-  #loginScreen ~ .feedback-btn,
   #loginScreen ~ #ui,
   #loginScreen ~ #touchZoomBtn { display: none !important; }
   #trainStats {
@@ -537,6 +535,7 @@
     border-radius: 4px;
     padding: 2px 8px;
     font-family: inherit;
+    display: none;
   }
   .feedback-btn:hover { border-color: #aaa; color: #fff; }
   /* Feedback Overlay */

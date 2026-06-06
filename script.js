@@ -557,6 +557,7 @@ function drawAITeammateHpBar(){
 }
 
 function resetGame() {
+  document.getElementById('feedbackBtn').style.display='block';
   const cfg=levelSystem.getCurrent();
   game.trainingMode=document.getElementById('modeTrainBtn').classList.contains('active');
   game.aiTeammateEnabled=document.getElementById('aiTeammateLow').classList.contains('active')?'low':(document.getElementById('aiTeammateHigh').classList.contains('active')?'high':(document.getElementById('aiTeammateMid').classList.contains('active')?'mid':null));
@@ -869,7 +870,7 @@ document.getElementById('modeTrainBtn').addEventListener('click',()=>setMode(fal
 document.getElementById('startBtn').addEventListener('click',()=>{initAudio();startScreen.style.display='none';game.started=true;resetGame();if(bgmEnabled)bgm.start();syncBgmToggleUI();setTimeout(fitGame,50);gameLoop();});
 document.getElementById('restartBtn').addEventListener('click',()=>{gameOverScreen.style.display='none';resetGame();});
 document.getElementById('victoryRestartBtn').addEventListener('click',()=>{victoryScreen.style.display='none';resetGame();});
-function goToMenu(){gameOverScreen.style.display='none';victoryScreen.style.display='none';game.started=false;game.running=false;bgm.stop();startScreen.style.display='flex';updateUsernameDisplay();renderLevelSelector();}
+function goToMenu(){gameOverScreen.style.display='none';victoryScreen.style.display='none';game.started=false;game.running=false;bgm.stop();startScreen.style.display='flex';updateUsernameDisplay();renderLevelSelector();document.getElementById('feedbackBtn').style.display='none';}
 document.getElementById('gameOverMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('victoryMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('trainExitBtn').addEventListener('click',goToMenu);
@@ -1013,6 +1014,7 @@ function recordGameResult(score, won, level) {
 }
 
 function checkPassword() {
+  document.getElementById('feedbackBtn').style.display='none';
   const savedPassword = localStorage.getItem(PASSWORD_KEY);
   if (!savedPassword) {
     // 首次进入，需要设置密码
