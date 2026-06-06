@@ -1170,15 +1170,6 @@ document.getElementById('firstTimeLink').addEventListener('click', (e) => {
   setPasswordScreen.style.display = 'flex';
 });
 
-// 清除所有本地数据
-document.getElementById('clearDataLink').addEventListener('click', (e) => {
-  e.preventDefault();
-  if (confirm('确定要清除所有本地数据吗？\n\n这将删除所有用户信息和游戏记录。')) {
-    localStorage.clear();
-    location.reload();
-  }
-});
-
 // 设置密码时回车键
 document.getElementById('confirmPassword').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
@@ -1365,6 +1356,14 @@ window.setAdmin = function(username) {
   // 修改ADMIN_USERNAME常量需要重新加载，这里只是提示
   console.log(`请将代码中的 ADMIN_USERNAME 修改为 "${username}" 并刷新页面`);
   console.log('当前管理员名:', ADMIN_USERNAME);
+};
+
+// 重置所有数据（在控制台输入 resetAll() 清空所有本地数据）
+window.resetAll = function() {
+  if (confirm('确定要清除所有数据吗？这将删除所有用户信息和游戏记录。')) {
+    localStorage.clear();
+    location.reload();
+  }
 };
 
 // 页面加载时检查密码
