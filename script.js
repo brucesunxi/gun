@@ -558,6 +558,7 @@ function drawAITeammateHpBar(){
 
 function resetGame() {
   showFeedbackBtn();
+  showGameUI();
   const cfg=levelSystem.getCurrent();
   game.trainingMode=document.getElementById('modeTrainBtn').classList.contains('active');
   game.aiTeammateEnabled=document.getElementById('aiTeammateLow').classList.contains('active')?'low':(document.getElementById('aiTeammateHigh').classList.contains('active')?'high':(document.getElementById('aiTeammateMid').classList.contains('active')?'mid':null));
@@ -870,7 +871,7 @@ document.getElementById('modeTrainBtn').addEventListener('click',()=>setMode(fal
 document.getElementById('startBtn').addEventListener('click',()=>{initAudio();startScreen.style.display='none';game.started=true;resetGame();if(bgmEnabled)bgm.start();syncBgmToggleUI();setTimeout(fitGame,50);gameLoop();});
 document.getElementById('restartBtn').addEventListener('click',()=>{gameOverScreen.style.display='none';resetGame();});
 document.getElementById('victoryRestartBtn').addEventListener('click',()=>{victoryScreen.style.display='none';resetGame();});
-function goToMenu(){gameOverScreen.style.display='none';victoryScreen.style.display='none';game.started=false;game.running=false;bgm.stop();startScreen.style.display='flex';updateUsernameDisplay();renderLevelSelector();hideFeedbackBtn();}
+function goToMenu(){gameOverScreen.style.display='none';victoryScreen.style.display='none';game.started=false;game.running=false;bgm.stop();startScreen.style.display='flex';updateUsernameDisplay();renderLevelSelector();hideFeedbackBtn();hideGameUI();}
 document.getElementById('gameOverMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('victoryMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('trainExitBtn').addEventListener('click',goToMenu);
@@ -1015,6 +1016,7 @@ function recordGameResult(score, won, level) {
 
 function checkPassword() {
   hideFeedbackBtn();
+  hideGameUI();
   const savedPassword = localStorage.getItem(PASSWORD_KEY);
   if (!savedPassword) {
     // 首次进入，需要设置密码
@@ -1216,6 +1218,18 @@ function clearAllFeedback() {
   if (!isAdmin) return;
   localStorage.removeItem(FEEDBACK_KEY);
   localStorage.removeItem(FEEDBACK_READ_KEY);
+}
+
+// 显示/隐藏所有游戏UI元素
+function showGameUI(){
+  const ids = ['weaponInfo', 'soundToggle', 'bgmToggle', 'shopBtn', 'touchZoomBtn', 'trainExitBtn'];
+  ids.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = ''; });
+  document.querySelectorAll('.weapon-info, .sound-toggle, .bgm-toggle, .shop-btn, .touch-zoom').forEach(el => { el.style.display = ''; });
+}
+function hideGameUI(){
+  const ids = ['weaponInfo', 'soundToggle', 'bgmToggle', 'shopBtn', 'touchZoomBtn', 'trainExitBtn'];
+  ids.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
+  document.querySelectorAll('.weapon-info, .sound-toggle, .bgm-toggle, .shop-btn, .touch-zoom').forEach(el => { el.style.display = 'none'; });
 }
 
 // ==================== 反馈按钮 ====================
