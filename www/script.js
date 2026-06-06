@@ -342,6 +342,7 @@ function addScore(points){
     setTimeout(()=>{waveInfo.style.opacity='0';waveInfo.style.color='#ffd700';},2000);
   }
 }
+function updateUI() {
   scoreEl.textContent=game.score;livesEl.textContent=game.lives;killsEl.textContent=game.kills;
   remainingEl.textContent=Math.max(0,game.totalEnemies-game.kills);totalEl.textContent=game.totalEnemies;
   document.getElementById('uiCenter').style.display=game.trainingMode?'none':'';
@@ -655,6 +656,9 @@ function gameLoop(){if(!game.started)return;update();if(game.trainingMode)update
 if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.quadraticCurveTo(x+w,y,x+w,y+r);this.lineTo(x+w,y+h-r);this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);this.lineTo(x+r,y+h);this.quadraticCurveTo(x,y+h,x,y+h-r);this.lineTo(x,y+r);this.quadraticCurveTo(x,y,x+r,y);this.closePath();};}
 
 document.addEventListener('keydown',(e)=>{
+  // 检查是否在输入密码，如果是则不处理游戏按键
+  if(e.target.tagName==='INPUT'&&e.target.type==='password')return;
+  if(e.target.tagName==='INPUT'&&e.target.type==='text')return;
   if(e.key==='a'||e.key==='A'||e.key==='ArrowLeft')keys.left=true;
   if(e.key==='d'||e.key==='D'||e.key==='ArrowRight')keys.right=true;
   if(e.key===' '){keys.space=true;e.preventDefault();}
@@ -667,6 +671,9 @@ document.addEventListener('keydown',(e)=>{
   }
 });
 document.addEventListener('keyup',(e)=>{
+  // 检查是否在输入密码，如果是则不处理游戏按键
+  if(e.target.tagName==='INPUT'&&e.target.type==='password')return;
+  if(e.target.tagName==='INPUT'&&e.target.type==='text')return;
   if(e.key==='a'||e.key==='A'||e.key==='ArrowLeft')keys.left=false;
   if(e.key==='d'||e.key==='D'||e.key==='ArrowRight')keys.right=false;
   if(e.key===' '){keys.space=false;e.preventDefault();}
@@ -727,7 +734,17 @@ window.addEventListener('orientationchange',()=>setTimeout(fitGame,300));
 fitGame();
 document.addEventListener('touchmove',(e)=>{e.preventDefault();},{passive:false});
 canvas.addEventListener('contextmenu',(e)=>{e.preventDefault();});
-canvas.addEventListener('mousedown',(e)=>{if(e.button===2){game.zoomed=!game.zoomed;keys.zoom=game.zoomed;}});
+canvas.addEventListener('mousedown',(e)=>{
+  canvas.focus();
+  if(e.button===2){game.zoomed=!game.zoomed;keys.zoom=game.zoomed;}
+});
+// 点击游戏容器时获得焦点
+document.getElementById('gameContainer').addEventListener('click',()=>{
+  canvas.focus();
+});
+// 让 canvas 可聚焦
+canvas.setAttribute('tabindex','0');
+canvas.style.outline='none';
 
 function setMode(battle){
   document.getElementById('modeBattleBtn').classList.toggle('active',battle);
