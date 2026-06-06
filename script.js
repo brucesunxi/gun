@@ -1218,23 +1218,31 @@ function clearAllFeedback() {
   localStorage.removeItem(FEEDBACK_READ_KEY);
 }
 
-// ==================== 反馈按钮（动态创建，不受CSS干扰） ====================
-let feedbackBtn = document.getElementById('feedbackBtn');
-if (!feedbackBtn) {
-  feedbackBtn = document.createElement('button');
-  feedbackBtn.id = 'feedbackBtn';
-  feedbackBtn.className = 'feedback-btn';
-  feedbackBtn.textContent = '💬 反馈';
-  feedbackBtn.style.cssText = 'position:fixed;bottom:104px;right:16px;color:#888;font-size:13px;pointer-events:auto;cursor:pointer;background:none;border:1px solid #555;border-radius:4px;padding:2px 8px;font-family:inherit;display:none;';
-  document.body.appendChild(feedbackBtn);
+// ==================== 反馈按钮 ====================
+function showFeedbackBtn(){
+  let btn = document.querySelector('#feedbackBtn') || document.querySelector('.feedback-btn');
+  if(!btn){
+    btn = document.createElement('button');
+    btn.id = 'feedbackBtn';
+    btn.className = 'feedback-btn';
+    btn.textContent = '💬 反馈';
+    btn.style.cssText = 'position:fixed;bottom:104px;right:16px;color:#888;font-size:13px;cursor:pointer;background:none;border:1px solid #555;border-radius:4px;padding:2px 8px;font-family:inherit;z-index:9999';
+    document.body.appendChild(btn);
+  }
+  btn.style.display = 'block';
 }
-function showFeedbackBtn(){ feedbackBtn.style.display = 'block'; }
-function hideFeedbackBtn(){ feedbackBtn.style.display = 'none'; }
+function hideFeedbackBtn(){
+  const btn = document.getElementById('feedbackBtn') || document.querySelector('.feedback-btn');
+  if(btn) btn.style.display = 'none';
+}
 
-// 反馈按钮事件
-feedbackBtn.addEventListener('click', () => {
-  document.getElementById('feedbackOverlay').style.display = 'flex';
-  document.getElementById('feedbackText').focus();
+// 反馈按钮事件 - 使用事件委托，确保即使动态创建也能工作
+document.addEventListener('click', (e) => {
+  if(e.target.id === 'feedbackBtn' || e.target.closest('.feedback-btn')){
+    document.getElementById('feedbackOverlay').style.display = 'flex';
+    const ft = document.getElementById('feedbackText');
+    if(ft) ft.focus();
+  }
 });
 
 document.getElementById('feedbackClose').addEventListener('click', () => {

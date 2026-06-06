@@ -16,7 +16,8 @@
       "Bash(node --check /Users/jianrong/Downloads/CCP/gun/script.js)",
       "Bash(pkill -f \"python3 -m http.server\")",
       "Bash(GIT_SSH_COMMAND=\"ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=10\" git push *)",
-      "Bash(git remote *)"
+      "Bash(git remote *)",
+      "Bash(node *)"
     ]
   }
 }
