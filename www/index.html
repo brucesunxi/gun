@@ -75,7 +75,12 @@
     <div class="controls">
       <kbd>A</kbd> <kbd>D</kbd> 或 ← → 移动 &nbsp;|&nbsp; <kbd>Space</kbd> 射击<br>
       <kbd>Shift</kbd> 或右键 瞄准 &nbsp;|&nbsp; <kbd>B</kbd> 商店
-      <div id="difficultySetting">
+      <div id="levelSelector">
+        <span>选择关卡:</span>
+        <div id="levelGrid"></div>
+        <div id="levelInfo">第1关: 新兵训练 — 5名敌人，慢速刷新</div>
+      </div>
+      <div id="difficultySetting" style="display:none;">
         <span>敌人总数:</span>
         <input type="number" id="enemyCountInput" value="8" min="1" max="50">
         <button class="preset" data-count="4">😊 简单</button>

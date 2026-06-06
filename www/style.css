@@ -374,6 +374,62 @@
   }
   #difficultySetting .preset:hover { background: #5a5a3a; border-color: #8a8a4a; }
   #difficultySetting .preset.active { background: #556b2f; border-color: #8aa84a; color: #fff; }
+  /* Level Selector */
+  #levelSelector {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 12px 0;
+    padding: 12px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    border: 1px solid #444;
+  }
+  #levelSelector span {
+    color: #888;
+    font-size: 13px;
+  }
+  #levelGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .level-btn {
+    padding: 8px 4px;
+    font-size: 12px;
+    font-family: inherit;
+    background: #3a3a3a;
+    color: #888;
+    border: 2px solid #555;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .level-btn:hover:not(:disabled) {
+    background: #4a4a4a;
+    border-color: #777;
+  }
+  .level-btn.unlocked {
+    background: #4a5a3a;
+    color: #ccc;
+    border-color: #6a7a4a;
+  }
+  .level-btn.active {
+    background: #556b2f;
+    color: #fff;
+    border-color: #8aa84a;
+    box-shadow: 0 0 10px rgba(138,168,74,0.5);
+  }
+  .level-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  #levelInfo {
+    color: #ffd700;
+    font-size: 12px;
+    text-align: center;
+    margin-top: 4px;
+  }
   #startScreen .start-btn {
     margin-top: 24px;
     padding: 14px 48px;

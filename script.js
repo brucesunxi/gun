@@ -187,6 +187,23 @@ const game = {
   shellCasings:[],muzzleFlashes:[],boss:null,bossActive:false,
   aiTeammateEnabled:null,aiTeammate:null,aiTeammateLevel:'mid',
   rank:'bronze',rankScore:0,
+  currentLevel:1,unlockedLevel:1,
+};
+
+// 8关系统
+const levelSystem = {
+  levels: [
+    {level:1,name:'新兵训练',enemies:5,spawnInterval:100,enemyHp:15,enemySpeed:0.8,hasBoss:false,desc:'5名敌人，慢速刷新'},
+    {level:2,name:'初上战场',enemies:8,spawnInterval:90,enemyHp:20,enemySpeed:1.0,hasBoss:false,desc:'8名敌人，基础难度'},
+    {level:3,name:'激烈交火',enemies:12,spawnInterval:80,enemyHp:25,enemySpeed:1.1,hasBoss:false,desc:'12名敌人，速度提升'},
+    {level:4,name:'重围突破',enemies:16,spawnInterval:70,enemyHp:30,enemySpeed:1.2,hasBoss:false,desc:'16名敌人，快速刷新'},
+    {level:5,name:'精英对决',enemies:20,spawnInterval:65,enemyHp:35,enemySpeed:1.3,hasBoss:true,bossHp:200,desc:'20名敌人+小BOSS'},
+    {level:6,name:'血腥战场',enemies:25,spawnInterval:60,enemyHp:40,enemySpeed:1.4,hasBoss:true,bossHp:300,desc:'25名敌人+强化BOSS'},
+    {level:7,name:'死亡峡谷',enemies:30,spawnInterval:55,enemyHp:45,enemySpeed:1.5,hasBoss:true,bossHp:450,desc:'30名敌人+双BOSS'},
+    {level:8,name:'终极决战',enemies:35,spawnInterval:50,enemyHp:50,enemySpeed:1.6,hasBoss:true,bossHp:600,desc:'35名敌人+终极BOSS'}
+  ],
+  getCurrent(){return this.levels[game.currentLevel-1]||this.levels[0];},
+  getConfig(lvl){return this.levels[Math.min(lvl-1,this.levels.length-1)];}
 };
 
 // 等级系统
@@ -199,7 +216,7 @@ const rankSystem = {
     {name:'diamond',title:'💎 钻石',color:'#00ffff',next:1500,bonus:1.4},
     {name:'master',title:'👑 大师',color:'#9d00ff',next:2200,bonus:1.5},
     {name:'legend',title:'🔥 传奇',color:'#ff6600',next:3000,bonus:1.7},
-    {name:'god',title:'⭐ 战神',color:'#ff0000',next:999999,bonus:2}
+    {name:'god',title:'⭐ 战神',color:'#ff0000',next:7000,bonus:2}
   ],
   getCurrent(){return this.levels.find(l=>l.name===game.rank)||this.levels[0];},
   getNext(){const idx=this.levels.findIndex(l=>l.name===game.rank);return this.levels[Math.min(idx+1,this.levels.length-1)];},
@@ -214,6 +231,31 @@ const rankSystem = {
   },
   getBonus(){return this.getCurrent().bonus;}
 };
+
+// 关卡进度保存/加载
+const LEVEL_KEY = 'battle_shooter_progress';
+function loadProgress(){
+  const saved=localStorage.getItem(LEVEL_KEY);
+  if(saved){
+    const data=JSON.parse(saved);
+    game.unlockedLevel=data.unlockedLevel||1;
+    game.currentLevel=data.currentLevel||1;
+  }
+}
+function saveProgress(){
+  localStorage.setItem(LEVEL_KEY,JSON.stringify({unlockedLevel:game.unlockedLevel,currentLevel:game.currentLevel}));
+}
+function unlockNextLevel(){
+  if(game.currentLevel>=game.unlockedLevel&&game.currentLevel<8){
+    game.unlockedLevel=game.currentLevel+1;
+    saveProgress();
+  }
+}
+function selectLevel(lvl){
+  game.currentLevel=Math.min(lvl,game.unlockedLevel);
+  updateLevelUI();
+}
+
 const player = {
   x:W/2,y:H-70,w:32,h:44,speed:4,hp:100,maxHp:100,shootCooldown:0,weapon:'pistol',
   invincible:0,dir:0,moving:false,damageMult:1,fireRateMult:1,armor:0,
@@ -262,8 +304,10 @@ function clamp(v,mn,mx){return Math.max(mn,Math.min(mx,v));}
 function spawnEnemy() {
   if (game.enemiesSpawned>=game.totalEnemies) return;
   game.enemiesSpawned++;
-  const s=Math.max(0.5,game.totalEnemies/8), hp=randInt(Math.round(15/s),Math.round(30+game.totalEnemies*0.5/s));
-  game.enemies.push({x:rand(40,W-40),y:-40,w:28,h:40,hp,maxHp:hp,speed:clamp(rand(0.3,0.7),0.3,1.5),dir:1,shootTimer:randInt(20,80),canShoot:true,animFrame:0,animTimer:0});
+  const cfg=game.levelConfig||levelSystem.getCurrent();
+  const hp=randInt(Math.round(cfg.enemyHp*0.8),Math.round(cfg.enemyHp*1.2));
+  const speed=rand(cfg.enemySpeed*0.8,cfg.enemySpeed*1.2);
+  game.enemies.push({x:rand(40,W-40),y:-40,w:28,h:40,hp,maxHp:hp,speed:clamp(speed,0.3,2.0),dir:1,shootTimer:randInt(20,80),canShoot:true,animFrame:0,animTimer:0});
 }
 function spawnTarget() {
   const types=[{w:30,h:50,hp:1,points:10},{w:40,h:60,hp:1,points:5},{w:24,h:36,hp:1,points:20}];
@@ -303,12 +347,14 @@ function enemyShoot(enemy) {
 }
 function triggerBoss() {
   if(game.bossActive||game.trainingMode)return;
+  const cfg=game.levelConfig||levelSystem.getCurrent();
+  if(!cfg.hasBoss)return;
   game.bossActive=true;
   waveInfo.textContent='\u{1F480} BOSS 登场！';waveInfo.style.opacity='1';waveInfo.style.color='#ff4444';waveInfo.style.fontSize='42px';
   setTimeout(()=>{waveInfo.style.opacity='0';waveInfo.style.color='#ffd700';waveInfo.style.fontSize='36px';},2000);
   game.screenShake=15;
-  const scale=1+game.totalEnemies*0.03;
-  game.boss={x:W/2,y:-80,w:60,h:70,hp:Math.round(250*scale),maxHp:Math.round(250*scale),speed:0.8,dir:1,shootTimer:0,shootInterval:60,phase:1,state:'enter',enterTimer:120,animFrame:0,animTimer:0};
+  const bossHp=Math.round(cfg.bossHp||250);
+  game.boss={x:W/2,y:-80,w:60,h:70,hp:bossHp,maxHp:bossHp,speed:0.8,dir:1,shootTimer:0,shootInterval:Math.max(30,60-game.currentLevel*3),phase:1,state:'enter',enterTimer:120,animFrame:0,animTimer:0};
 }
 function checkBossDefeated() {
   if(!game.bossActive||!game.boss||game.boss.hp>0)return;
@@ -317,6 +363,7 @@ function checkBossDefeated() {
   victoryScreen.style.display='flex';
   createExplosion(W/2,H/3,'#ff4400',60);createExplosion(W/2-50,H/3+30,'#ff8800',40);createExplosion(W/2+50,H/3-20,'#ffcc00',30);
   game.screenShake=0;playSound('victory');
+  unlockNextLevel();
 }
 function gameOver() {
   game.running=false;game.over=true;
@@ -464,20 +511,20 @@ function drawAITeammateHpBar(){
 }
 
 function resetGame() {
-  const val=parseInt(document.getElementById('enemyCountInput').value,10);
-  game.totalEnemies=clamp(val||8,1,50);
+  const cfg=levelSystem.getCurrent();
   game.trainingMode=document.getElementById('modeTrainBtn').classList.contains('active');
   game.aiTeammateEnabled=document.getElementById('aiTeammateLow').classList.contains('active')?'low':(document.getElementById('aiTeammateHigh').classList.contains('active')?'high':(document.getElementById('aiTeammateMid').classList.contains('active')?'mid':null));
+  game.totalEnemies=game.trainingMode?20:cfg.enemies;
   game.score=0;game.lives=3;game.kills=0;game.enemiesSpawned=0;game.shotsFired=0;game.hits=0;game.combo=0;game.maxCombo=0;
   game.rank='bronze';game.rankScore=0;
   game.frame=0;game.particles=[];game.bullets=[];game.enemies=[];game.supplies=[];game.shellCasings=[];game.muzzleFlashes=[];
-  game.screenShake=0;game.enemySpawnTimer=0;game.enemySpawnInterval=90;
-  game.maxEnemiesOnScreen=game.trainingMode?6:Math.min(4,Math.ceil(game.totalEnemies/3));
+  game.screenShake=0;game.enemySpawnTimer=0;game.enemySpawnInterval=game.trainingMode?90:cfg.spawnInterval;
+  game.maxEnemiesOnScreen=game.trainingMode?6:Math.min(4,Math.ceil(cfg.enemies/3));
   game.over=false;game.won=false;game.zoomed=false;game.bossActive=false;game.boss=null;
+  game.levelConfig=cfg;
   keys.zoom=false;game.running=true;
   player.x=W/2;player.hp=player.maxHp;player.weapon='pistol';player.damageMult=1;player.fireRateMult=1;player.armor=0;
   player.invincible=game.trainingMode?9999:60;player.shootCooldown=0;
-  // 初始化AI队友
   if(game.aiTeammateEnabled){initAITeammate(game.aiTeammateEnabled);}
   else{aiTeammate.active=false;}
   shopItems.forEach(i=>{i.bought=false;if(i.id==='heal')i.bought=0;});
@@ -485,8 +532,8 @@ function resetGame() {
   document.getElementById('trainExitBtn').style.display=game.trainingMode?'':'none';
   document.getElementById('shopBtn').style.display=game.trainingMode?'none':'';
   updateUI();weaponInfo.textContent='\u{1F52B} 手枪 (18伤害)';
-  if(game.trainingMode) { waveInfo.textContent='\u{1F3AF} 训练场 — 射击移动靶练习！';waveInfo.style.opacity='1';setTimeout(()=>{waveInfo.style.opacity='0';},2500); }
-  else { waveInfo.textContent='\u{1F3AF} 消灭 '+game.totalEnemies+' 名敌人！';waveInfo.style.opacity='1';setTimeout(()=>{waveInfo.style.opacity='0';},2000); }
+  if(game.trainingMode){waveInfo.textContent='\u{1F3AF} 训练场 — 射击移动靶练习！';waveInfo.style.opacity='1';setTimeout(()=>{waveInfo.style.opacity='0';},2500);}
+  else{waveInfo.textContent='\u{1F3AF} 第'+cfg.level+'关: '+cfg.name+' — '+cfg.desc;waveInfo.style.opacity='1';setTimeout(()=>{waveInfo.style.opacity='0';},2500);}
 }
 
 // Drawing
@@ -761,7 +808,8 @@ function setMode(battle){
   document.getElementById('modeTrainBtn').classList.toggle('active',!battle);
   document.getElementById('startSub').textContent=battle?'—— 消灭全部敌人 ——':'—— 射击训练，无限弹药 ——';
   document.getElementById('startBtn').textContent=battle?'进入战场':'开始训练';
-  document.getElementById('difficultySetting').style.display=battle?'flex':'none';
+  document.getElementById('difficultySetting').style.display='none';
+  document.getElementById('levelSelector').style.display=battle?'flex':'none';
   document.getElementById('aiTeammateRow').style.display=battle?'flex':'none';
 }
 document.getElementById('modeBattleBtn').addEventListener('click',()=>setMode(true));
@@ -779,6 +827,34 @@ document.getElementById('aiTeammateMid').addEventListener('click',function(){doc
 document.getElementById('aiTeammateHigh').addEventListener('click',function(){document.querySelectorAll('#aiTeammateLow,#aiTeammateMid,#aiTeammateHigh').forEach(b=>b.classList.remove('active'));this.classList.add('active');});
 document.querySelectorAll('.preset').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.preset').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('enemyCountInput').value=btn.dataset.count;});});
 document.getElementById('enemyCountInput').addEventListener('input',()=>{document.querySelectorAll('.preset').forEach(b=>b.classList.remove('active'));});
+
+// ==================== 关卡系统 ====================
+function renderLevelSelector(){
+  const grid=document.getElementById('levelGrid');
+  if(!grid)return;
+  grid.innerHTML='';
+  levelSystem.levels.forEach(lvl=>{
+    const btn=document.createElement('button');
+    btn.className='level-btn'+(lvl.level<=game.unlockedLevel?' unlocked':'')+(lvl.level===game.currentLevel?' active':'');
+    btn.textContent=lvl.level;
+    btn.disabled=lvl.level>game.unlockedLevel;
+    btn.onclick=()=>selectLevel(lvl.level);
+    grid.appendChild(btn);
+  });
+  updateLevelInfo();
+}
+function updateLevelInfo(){
+  const info=document.getElementById('levelInfo');
+  if(info){
+    const cfg=levelSystem.getCurrent();
+    info.textContent='第'+cfg.level+'关: '+cfg.name+' — '+cfg.desc;
+  }
+}
+function updateLevelUI(){
+  renderLevelSelector();
+}
+
+// ==================== 密码登录系统 ====================
 
 // ==================== 密码登录系统 ====================
 const PASSWORD_KEY = 'battle_shooter_password';
@@ -829,6 +905,7 @@ document.getElementById('setPasswordBtn').addEventListener('click', () => {
   // 进入游戏主界面
   setPasswordScreen.style.display = 'none';
   startScreen.style.display = 'flex';
+  renderLevelSelector();
 });
 
 // 登录
@@ -843,6 +920,8 @@ document.getElementById('loginBtn').addEventListener('click', () => {
     startScreen.style.display = 'flex';
     document.getElementById('loginPassword').value = '';
     hintEl.textContent = '';
+    loadProgress();
+    renderLevelSelector();
   } else {
     hintEl.textContent = '密码错误，请重试';
     hintEl.style.color = '#ff6666';
