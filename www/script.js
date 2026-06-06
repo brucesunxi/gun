@@ -922,7 +922,7 @@ const PASSWORD_HINT_KEY = 'battle_shooter_password_hint';
 const USERNAME_KEY = 'battle_shooter_username';
 const USERS_DATA_KEY = 'battle_shooter_users_data';
 const CURRENT_USER_KEY = 'battle_shooter_current_user';
-const ADMIN_USERNAME = 'admin'; // 管理员用户名，可以修改
+const ADMIN_USERNAME = '管理'; // 管理员用户名，可以修改
 
 const loginScreen = document.getElementById('loginScreen');
 const setPasswordScreen = document.getElementById('setPasswordScreen');
