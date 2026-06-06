@@ -57,6 +57,7 @@
     font-weight: bold;
     margin: 8px 0;
     color: #cd7f32;
+    display: inline-block;
   }
   .start-rank.bronze { color: #cd7f32; }
   .start-rank.silver { color: #c0c0c0; }
