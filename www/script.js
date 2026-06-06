@@ -738,9 +738,11 @@ canvas.addEventListener('mousedown',(e)=>{
   canvas.focus();
   if(e.button===2){game.zoomed=!game.zoomed;keys.zoom=game.zoomed;}
 });
-// 点击游戏容器时获得焦点
-document.getElementById('gameContainer').addEventListener('click',()=>{
-  canvas.focus();
+// 点击游戏容器时获得焦点（但不包括输入框）
+document.getElementById('gameContainer').addEventListener('click',(e)=>{
+  if (e.target.tagName !== 'INPUT') {
+    canvas.focus();
+  }
 });
 // 让 canvas 可聚焦
 canvas.setAttribute('tabindex','0');
