@@ -87,15 +87,17 @@
   </div>
 
   <div id="setPasswordScreen" style="display:none;">
-    <h1>🔐 首次登录</h1>
+    <h1>🔐 用户注册</h1>
     <div class="login-box">
-      <p class="set-pwd-desc">请设置您的游戏密码（4-20位）</p>
-      <input type="password" id="newPassword" placeholder="设置密码" maxlength="20">
+      <p class="set-pwd-desc">注册新用户，填写信息后直接进入游戏</p>
+      <input type="text" id="regUsername" placeholder="设置用户名（2-20位）" maxlength="20">
+      <input type="password" id="newPassword" placeholder="设置密码（4-20位）" maxlength="20">
       <input type="password" id="confirmPassword" placeholder="确认密码" maxlength="20">
-      <input type="text" id="passwordHint" placeholder="设置密码提示（用于找回密码）" maxlength="30">
-      <button class="login-btn" id="setPasswordBtn">设置密码</button>
+      <input type="text" id="passwordHint" placeholder="密码提示（用于找回密码，可选）" maxlength="30">
+      <button class="login-btn" id="setPasswordBtn">注册并进入游戏</button>
       <p id="setPwdError" class="error-msg"></p>
     </div>
+  </div>
   </div>
 
   <div id="startScreen" style="display:none;">
@@ -156,7 +158,7 @@
     <button class="menu-btn" id="victoryMenuBtn">返回主菜单</button>
   </div>
 </div>
-<script src="script.js?v=1014"></script>
+<script src="script.js?v=1015"></script>
 <script>
   // 注册 Service Worker
   if ('serviceWorker' in navigator) {

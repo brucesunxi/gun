@@ -1029,13 +1029,22 @@ function checkPassword() {
   }
 }
 
-// 设置密码
+// 设置密码（注册流程：用户名+密码一次完成）
 document.getElementById('setPasswordBtn').addEventListener('click', () => {
+  const regUser = document.getElementById('regUsername').value.trim();
   const newPwd = document.getElementById('newPassword').value.trim();
   const confirmPwd = document.getElementById('confirmPassword').value.trim();
   const hint = document.getElementById('passwordHint').value.trim();
   const errorEl = document.getElementById('setPwdError');
 
+  if (regUser.length < 2) {
+    errorEl.textContent = '用户名至少需要2位字符';
+    return;
+  }
+  if (regUser.length > 20) {
+    errorEl.textContent = '用户名不能超过20位字符';
+    return;
+  }
   if (newPwd.length < 4) {
     errorEl.textContent = '密码至少需要4位字符';
     return;
@@ -1050,13 +1059,17 @@ document.getElementById('setPasswordBtn').addEventListener('click', () => {
   }
 
   localStorage.setItem(PASSWORD_KEY, newPwd);
+  localStorage.setItem(USERNAME_KEY, regUser);
   if (hint) {
     localStorage.setItem(PASSWORD_HINT_KEY, hint);
   }
 
-  // 进入用户名设置界面
+  // 设置当前用户并直接进入游戏
+  setCurrentUser(regUser);
   setPasswordScreen.style.display = 'none';
-  usernameScreen.style.display = 'flex';
+  startScreen.style.display = 'flex';
+  updateUsernameDisplay();
+  renderLevelSelector();
 });
 
 // 设置用户名
@@ -1146,10 +1159,10 @@ document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
 // 首次使用？进入设置密码
 document.getElementById('firstTimeLink').addEventListener('click', (e) => {
   e.preventDefault();
-  // 把登录界面输入的用户名带到用户名设置界面
+  // 把登录界面输入的用户名带到注册界面
   const loginUser = document.getElementById('loginUsername').value.trim();
   if (loginUser) {
-    document.getElementById('usernameInput').value = loginUser;
+    document.getElementById('regUsername').value = loginUser;
   }
   loginScreen.style.display = 'none';
   setPasswordScreen.style.display = 'flex';
