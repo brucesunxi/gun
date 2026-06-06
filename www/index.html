@@ -12,6 +12,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <title>战场射击</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192x192.png">
 <link rel="stylesheet" href="style.css?v=1014">
 </head>
 <body>
@@ -160,5 +162,18 @@
   </div>
   <button class="feedback-btn" id="feedbackBtn" onclick="showOverlay()" style="position:fixed;bottom:104px;right:16px;z-index:99999;pointer-events:auto;color:#aaa;font-size:13px;cursor:pointer;background:rgba(30,30,40,0.9);border:1px solid #666;border-radius:6px;padding:5px 12px;font-family:inherit;">💬 反馈</button>
 <script src="script.js?v=1024"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker 注册成功:', registration.scope);
+        })
+        .catch((error) => {
+          console.log('Service Worker 注册失败:', error);
+        });
+    });
+  }
+</script>
 </body>
 </html>
