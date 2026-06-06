@@ -868,7 +868,7 @@ function setMode(battle){
 document.getElementById('modeBattleBtn').addEventListener('click',()=>setMode(true));
 document.getElementById('modeTrainBtn').addEventListener('click',()=>setMode(false));
 
-document.getElementById('startBtn').addEventListener('click',()=>{initAudio();startScreen.style.display='none';game.started=true;document.getElementById('feedbackBtn').style.display='block';resetGame();if(bgmEnabled)bgm.start();syncBgmToggleUI();setTimeout(fitGame,50);gameLoop();});
+document.getElementById('startBtn').addEventListener('click',()=>{initAudio();startScreen.style.display='none';game.started=true;var fb=document.getElementById('feedbackBtn');if(fb){fb.style.setProperty('display','block','important');fb.style.visibility='visible';}resetGame();if(bgmEnabled)bgm.start();syncBgmToggleUI();setTimeout(fitGame,50);gameLoop();});
 document.getElementById('restartBtn').addEventListener('click',()=>{gameOverScreen.style.display='none';resetGame();});
 document.getElementById('victoryRestartBtn').addEventListener('click',()=>{victoryScreen.style.display='none';resetGame();});
 function goToMenu(){gameOverScreen.style.display='none';victoryScreen.style.display='none';game.started=false;game.running=false;bgm.stop();startScreen.style.display='flex';updateUsernameDisplay();renderLevelSelector();hideFeedbackBtn();hideGameUI();}
