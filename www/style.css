@@ -34,19 +34,7 @@
   }
   #ui span { color: #ffd700; }
   #rankDisplay {
-    position: absolute;
-    top: 38px;
-    left: 16px;
-    font-size: 13px;
-    font-weight: bold;
-    color: #cd7f32;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-    pointer-events: none;
-    transition: all 0.3s;
-    background: transparent;
-  }
-  .rank-badge {
-    display: block;
+    display: none !important;
   }
   #rankDisplay.silver { color: #c0c0c0; }
   #rankDisplay.gold { color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.5); }
@@ -242,12 +230,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: 5px 0 15px 0;
-    padding: 6px 14px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 16px;
-    border: 1px solid #555;
-    font-size: 14px;
+    margin: 5px 0;
   }
   #usernameDisplay {
     color: #8aa84a;
