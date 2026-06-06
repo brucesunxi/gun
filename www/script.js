@@ -185,7 +185,7 @@ const game = {
   frame:0,enemySpawnTimer:0,enemySpawnInterval:90,maxEnemiesOnScreen:4,screenShake:0,
   particles:[],bullets:[],enemies:[],supplies:[],stars:[],
   shellCasings:[],muzzleFlashes:[],boss:null,bossActive:false,
-  aiTeammateEnabled:false,aiTeammate:null,
+  aiTeammateEnabled:null,aiTeammate:null,aiTeammateLevel:'mid',
 };
 const player = {
   x:W/2,y:H-70,w:32,h:44,speed:4,hp:100,maxHp:100,shootCooldown:0,weapon:'pistol',
@@ -311,18 +311,25 @@ function updateTrainingStats() {
   const acc=game.shotsFired>0?Math.round(game.hits/game.shotsFired*100):0;
   document.getElementById('trainStats').innerHTML='\u{1F3AF} 命中率: '+acc+'%<br>命中: '+game.hits+'/'+game.shotsFired+'<br>\u{1F525} 连击: '+game.combo+' (最高: '+game.maxCombo+')';
 }
-function initAITeammate() {
+function initAITeammate(level) {
+  level=level||'mid';
+  game.aiTeammateLevel=level;
   aiTeammate.active=true;
   aiTeammate.x=player.x-60;
   aiTeammate.y=player.y;
-  aiTeammate.hp=aiTeammate.maxHp;
-  aiTeammate.shootCooldown=0;
   aiTeammate.invincible=60;
   aiTeammate.dir=1;
   aiTeammate.targetEnemy=null;
   aiTeammate.shootTimer=0;
-  aiTeammate.weapon='pistol';
-  aiTeammate.damageMult=0.55;
+  aiTeammate.weapon='rifle';
+  // 根据级别设置属性
+  if(level==='low'){
+    aiTeammate.maxHp=80;aiTeammate.hp=80;aiTeammate.speed=0.55;aiTeammate.damageMult=0.35;
+  }else if(level==='high'){
+    aiTeammate.maxHp=250;aiTeammate.hp=250;aiTeammate.speed=1.3;aiTeammate.damageMult=0.85;
+  }else{
+    aiTeammate.maxHp=160;aiTeammate.hp=160;aiTeammate.speed=0.9;aiTeammate.damageMult=0.55;
+  }
 }
 
 function aiTeammateShoot(targetX,targetY) {
@@ -330,28 +337,14 @@ function aiTeammateShoot(targetX,targetY) {
   const cx=aiTeammate.x,cy=aiTeammate.y-aiTeammate.h/2;
   const dmg=aiTeammate.damageMult;
   const angle=Math.atan2(targetY-aiTeammate.y,targetX-aiTeammate.x);
-  const cosA=Math.cos(angle),sinA=Math.sin(angle);
-
-  if(aiTeammate.weapon==='pistol') {
-    game.bullets.push({x:cx,y:cy-10,vx:cosA*7+rand(-1.2,1.2),vy:sinA*7+rand(-0.8,0.8),damage:Math.round(12*dmg),w:4,h:10,color:'#88ff88',trail:[],fromAI:true});
-    aiTeammate.shootCooldown=18;
-    playSound('pistol');
-  } else if(aiTeammate.weapon==='rifle') {
+  // 根据级别有不同的射击精度
+  let spread=0;
+  if(game.aiTeammateLevel==='low'){spread=rand(-1.8,1.8);}else if(game.aiTeammateLevel==='high'){spread=rand(-0.3,0.3);}else{spread=rand(-1.2,1.2);}
+  const cosA=Math.cos(angle+spread),sinA=Math.sin(angle+spread);
+  if(aiTeammate.weapon==='rifle') {
     game.bullets.push({x:cx,y:cy-10,vx:cosA*10+rand(-1.2,1.2),vy:sinA*10+rand(-0.8,0.8),damage:Math.round(16*dmg),w:3,h:14,color:'#88ff88',trail:[],fromAI:true});
-    aiTeammate.shootCooldown=10;
+    aiTeammate.shootCooldown=game.aiTeammateLevel==='high'?8:(game.aiTeammateLevel==='low'?12:10);
     playSound('rifle');
-  } else if(aiTeammate.weapon==='shotgun') {
-    for(let i=0;i<5;i++) {
-      const spread=(i-2)*0.12;
-      const sAngle=angle+spread;
-      game.bullets.push({x:cx,y:cy-8,vx:Math.cos(sAngle)*rand(4,7),vy:Math.sin(sAngle)*rand(4,7),damage:Math.round(10*dmg),w:4,h:5,color:'#88ff88',trail:[],fromAI:true});
-    }
-    aiTeammate.shootCooldown=35;
-    playSound('shotgun');
-  } else if(aiTeammate.weapon==='sniper') {
-    game.bullets.push({x:cx,y:cy-10,vx:cosA*14+rand(-0.4,0.4),vy:sinA*14+rand(-0.3,0.3),damage:Math.round(40*dmg),w:4,h:18,color:'#88ff88',trail:[],fromAI:true});
-    aiTeammate.shootCooldown=40;
-    playSound('sniper');
   }
   createMuzzleFlash(cx,cy-8);
   game.shellCasings.push({x:cx,y:cy,vx:rand(-1,1),vy:rand(-2,-1),life:40,rotation:0});
@@ -360,64 +353,37 @@ function aiTeammateShoot(targetX,targetY) {
 function updateAITeammate() {
   if(!aiTeammate.active||game.over||!game.running)return;
   aiTeammate.moving=false;
-  // 寻找最近的敌人作为目标（包括Boss）
+  // 根据级别设置攻击范围和跟随距离
+  let attackRange=350,idealDist=180,reactDelay=14;
+  if(game.aiTeammateLevel==='low'){attackRange=280;idealDist=150;reactDelay=18;}else if(game.aiTeammateLevel==='high'){attackRange=450;idealDist=220;reactDelay=10;}
+  // 寻找最近的敌人
   let nearest=null,nearestDist=Infinity;
-  for(const e of game.enemies){
-    // if(e.isTarget)continue;  // 训练模式也用AI队友
-    const d=Math.hypot(e.x-aiTeammate.x,e.y-aiTeammate.y);
-    if(d<nearestDist){nearestDist=d;nearest=e;}
-  }
-  // Boss优先级最高，只要有Boss就攻击Boss
-  if(game.bossActive&&game.boss){
-    nearest=game.boss;
-    nearestDist=Math.hypot(game.boss.x-aiTeammate.x,game.boss.y-aiTeammate.y);
-  }
+  for(const e of game.enemies){const d=Math.hypot(e.x-aiTeammate.x,e.y-aiTeammate.y);if(d<nearestDist){nearestDist=d;nearest=e;}}
+  if(game.bossActive&&game.boss){nearest=game.boss;nearestDist=Math.hypot(game.boss.x-aiTeammate.x,game.boss.y-aiTeammate.y);}
   aiTeammate.targetEnemy=nearest;
-
   // 移动逻辑
-  if(nearest&&nearestDist<500){
-    const idealDist=aiTeammate.weapon==='sniper'?350:(nearest===game.boss?250:200);
+  if(nearest&&nearestDist<attackRange+100){
+    const curIdeal=game.bossActive&&game.boss?250:idealDist;
     const angle=Math.atan2(nearest.y-aiTeammate.y,nearest.x-aiTeammate.x);
-    if(nearestDist>idealDist+80){
-      aiTeammate.x+=Math.cos(angle)*aiTeammate.speed;
-      aiTeammate.y+=Math.sin(angle)*aiTeammate.speed*0.5;
-      aiTeammate.moving=true;
-    }else if(nearestDist<idealDist-50){
-      aiTeammate.x-=Math.cos(angle)*aiTeammate.speed*0.6;
-      aiTeammate.y-=Math.sin(angle)*aiTeammate.speed*0.3;
-      aiTeammate.moving=true;
-    }else{
-      aiTeammate.x+=Math.sin(game.frame*0.15)*aiTeammate.speed*0.6;
-      aiTeammate.moving=true;
-    }
+    if(nearestDist>curIdeal+80){aiTeammate.x+=Math.cos(angle)*aiTeammate.speed;aiTeammate.y+=Math.sin(angle)*aiTeammate.speed*0.5;aiTeammate.moving=true;}
+    else if(nearestDist<curIdeal-50){aiTeammate.x-=Math.cos(angle)*aiTeammate.speed*0.6;aiTeammate.y-=Math.sin(angle)*aiTeammate.speed*0.3;aiTeammate.moving=true;}
+    else{aiTeammate.x+=Math.sin(game.frame*0.15)*aiTeammate.speed*0.6;aiTeammate.moving=true;}
     aiTeammate.dir=nearest.x>aiTeammate.x?1:-1;
   }else{
-    const followDist=80;
-    const dx=player.x-aiTeammate.x;
-    const dy=player.y-aiTeammate.y;
-    const distToPlayer=Math.hypot(dx,dy);
-    if(distToPlayer>followDist+30){
-      aiTeammate.x+=Math.sign(dx)*aiTeammate.speed*0.6;
-      aiTeammate.moving=true;
-      aiTeammate.dir=dx>0?1:-1;
-    }
-    if(!aiTeammate.moving&&game.frame%60<30){
-      aiTeammate.x+=Math.sin(game.frame*0.05)*2;
-      aiTeammate.moving=true;
-      aiTeammate.dir=Math.sin(game.frame*0.05)>0?1:-1;
-    }
+    const followDist=80,dx=player.x-aiTeammate.x,dy=player.y-aiTeammate.y,distToPlayer=Math.hypot(dx,dy);
+    if(distToPlayer>followDist+30){aiTeammate.x+=Math.sign(dx)*aiTeammate.speed*0.6;aiTeammate.moving=true;aiTeammate.dir=dx>0?1:-1;}
+    if(!aiTeammate.moving&&game.frame%60<30){aiTeammate.x+=Math.sin(game.frame*0.05)*2;aiTeammate.moving=true;aiTeammate.dir=Math.sin(game.frame*0.05)>0?1:-1;}
   }
-
-  aiTeammate.x=clamp(aiTeammate.x,40,W-40);
-  aiTeammate.y=clamp(aiTeammate.y,H*0.5,H-50);
-
-  // AI队友射击
-  const burstPos=aiTeammate.shootTimer%180;aiTeammate.shootTimer++;if(nearest&&nearestDist<350&&burstPos<50&&burstPos%14===1){
-    const aimX=nearest.x+(nearest.vx||0)*5;
-    const aimY=nearest.y+(nearest.vy||0)*3;
-    aiTeammate.dir=aimX>aiTeammate.x?1:-1;
-    aiTeammate.shootCooldown=0;
-    aiTeammateShoot(aimX,aimY);
+  aiTeammate.x=clamp(aiTeammate.x,40,W-40);aiTeammate.y=clamp(aiTeammate.y,H*0.5,H-50);
+  // 射击逻辑 - 根据级别调整射速
+  const burstPos=aiTeammate.shootTimer%(game.aiTeammateLevel==='high'?150:(game.aiTeammateLevel==='low'?220:180));
+  aiTeammate.shootTimer++;
+  if(nearest&&nearestDist<attackRange&&burstPos<50&&burstPos%reactDelay===1){
+    // 高级AI会预测目标移动
+    let aimX=nearest.x,aimY=nearest.y;
+    if(game.aiTeammateLevel==='high'&&nearest.vx){aimX+=nearest.vx*8;aimY+=nearest.vy*5;}
+    else if(game.aiTeammateLevel==='mid'&&nearest.vx){aimX+=nearest.vx*5;aimY+=nearest.vy*3;}
+    aiTeammate.dir=aimX>aiTeammate.x?1:-1;aiTeammate.shootCooldown=0;aiTeammateShoot(aimX,aimY);
   }
   if(aiTeammate.invincible>0)aiTeammate.invincible--;
 }
@@ -447,7 +413,7 @@ function resetGame() {
   const val=parseInt(document.getElementById('enemyCountInput').value,10);
   game.totalEnemies=clamp(val||8,1,50);
   game.trainingMode=document.getElementById('modeTrainBtn').classList.contains('active');
-  game.aiTeammateEnabled=document.getElementById('aiTeammateBtn').classList.contains('active');
+  game.aiTeammateEnabled=document.getElementById('aiTeammateLow').classList.contains('active')?'low':(document.getElementById('aiTeammateHigh').classList.contains('active')?'high':(document.getElementById('aiTeammateMid').classList.contains('active')?'mid':null));
   game.score=0;game.lives=3;game.kills=0;game.enemiesSpawned=0;game.shotsFired=0;game.hits=0;game.combo=0;game.maxCombo=0;
   game.frame=0;game.particles=[];game.bullets=[];game.enemies=[];game.supplies=[];game.shellCasings=[];game.muzzleFlashes=[];
   game.screenShake=0;game.enemySpawnTimer=0;game.enemySpawnInterval=90;
@@ -457,7 +423,7 @@ function resetGame() {
   player.x=W/2;player.hp=player.maxHp;player.weapon='pistol';player.damageMult=1;player.fireRateMult=1;player.armor=0;
   player.invincible=game.trainingMode?9999:60;player.shootCooldown=0;
   // 初始化AI队友
-  if(game.aiTeammateEnabled){initAITeammate();}
+  if(game.aiTeammateEnabled){initAITeammate(game.aiTeammateEnabled);}
   else{aiTeammate.active=false;}
   shopItems.forEach(i=>{i.bought=false;if(i.id==='heal')i.bought=0;});
   document.getElementById('trainStats').style.display=game.trainingMode?'block':'none';
@@ -735,10 +701,9 @@ function goToMenu(){gameOverScreen.style.display='none';victoryScreen.style.disp
 document.getElementById('gameOverMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('victoryMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('trainExitBtn').addEventListener('click',goToMenu);
-document.getElementById('aiTeammateBtn').addEventListener('click',function(){
-  this.classList.toggle('active');
-  this.textContent=this.classList.contains('active')?'🤖 开启':'🤖 关闭';
-});
+document.getElementById('aiTeammateLow').addEventListener('click',function(){document.querySelectorAll('#aiTeammateLow,#aiTeammateMid,#aiTeammateHigh').forEach(b=>b.classList.remove('active'));this.classList.add('active');});
+document.getElementById('aiTeammateMid').addEventListener('click',function(){document.querySelectorAll('#aiTeammateLow,#aiTeammateMid,#aiTeammateHigh').forEach(b=>b.classList.remove('active'));this.classList.add('active');});
+document.getElementById('aiTeammateHigh').addEventListener('click',function(){document.querySelectorAll('#aiTeammateLow,#aiTeammateMid,#aiTeammateHigh').forEach(b=>b.classList.remove('active'));this.classList.add('active');});
 document.querySelectorAll('.preset').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.preset').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('enemyCountInput').value=btn.dataset.count;});});
 document.getElementById('enemyCountInput').addEventListener('input',()=>{document.querySelectorAll('.preset').forEach(b=>b.classList.remove('active'));});
 

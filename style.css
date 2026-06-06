@@ -268,8 +268,8 @@
   margin-top: 10px;
 }
 .ai-btn {
-  padding: 6px 18px;
-  font-size: 14px;
+  padding: 6px 12px;
+  font-size: 13px;
   font-family: inherit;
   background: #3a2a2a;
   color: #aaa;
@@ -277,9 +277,13 @@
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.2s;
+  min-width: 50px;
 }
 .ai-btn:hover { border-color: #aaa; color: #fff; }
 .ai-btn.active { background: #4a3a5a; color: #d4aaff; border-color: #d4aaff; }
+.ai-btn.active#aiTeammateLow { background: #5a3a2a; color: #ffaa88; border-color: #ff8866; }
+.ai-btn.active#aiTeammateMid { background: #4a3a5a; color: #d4aaff; border-color: #aa88ff; }
+.ai-btn.active#aiTeammateHigh { background: #3a5a3a; color: #88ffaa; border-color: #66ff88; }
   #startScreen { z-index: 30; }
   #startScreen ~ .sound-toggle,
   #startScreen ~ .bgm-toggle,
