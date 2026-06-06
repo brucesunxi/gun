@@ -557,7 +557,7 @@ function drawAITeammateHpBar(){
 }
 
 function resetGame() {
-  document.getElementById('feedbackBtn').style.setProperty('display', 'block', 'important');
+  showFeedbackBtn();
   const cfg=levelSystem.getCurrent();
   game.trainingMode=document.getElementById('modeTrainBtn').classList.contains('active');
   game.aiTeammateEnabled=document.getElementById('aiTeammateLow').classList.contains('active')?'low':(document.getElementById('aiTeammateHigh').classList.contains('active')?'high':(document.getElementById('aiTeammateMid').classList.contains('active')?'mid':null));
@@ -870,7 +870,7 @@ document.getElementById('modeTrainBtn').addEventListener('click',()=>setMode(fal
 document.getElementById('startBtn').addEventListener('click',()=>{initAudio();startScreen.style.display='none';game.started=true;resetGame();if(bgmEnabled)bgm.start();syncBgmToggleUI();setTimeout(fitGame,50);gameLoop();});
 document.getElementById('restartBtn').addEventListener('click',()=>{gameOverScreen.style.display='none';resetGame();});
 document.getElementById('victoryRestartBtn').addEventListener('click',()=>{victoryScreen.style.display='none';resetGame();});
-function goToMenu(){gameOverScreen.style.display='none';victoryScreen.style.display='none';game.started=false;game.running=false;bgm.stop();startScreen.style.display='flex';updateUsernameDisplay();renderLevelSelector();document.getElementById('feedbackBtn').style.display='none';}
+function goToMenu(){gameOverScreen.style.display='none';victoryScreen.style.display='none';game.started=false;game.running=false;bgm.stop();startScreen.style.display='flex';updateUsernameDisplay();renderLevelSelector();hideFeedbackBtn();}
 document.getElementById('gameOverMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('victoryMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('trainExitBtn').addEventListener('click',goToMenu);
@@ -1014,7 +1014,7 @@ function recordGameResult(score, won, level) {
 }
 
 function checkPassword() {
-  document.getElementById('feedbackBtn').style.display='none';
+  hideFeedbackBtn();
   const savedPassword = localStorage.getItem(PASSWORD_KEY);
   if (!savedPassword) {
     // 首次进入，需要设置密码
@@ -1218,8 +1218,21 @@ function clearAllFeedback() {
   localStorage.removeItem(FEEDBACK_READ_KEY);
 }
 
+// ==================== 反馈按钮（动态创建，不受CSS干扰） ====================
+let feedbackBtn = document.getElementById('feedbackBtn');
+if (!feedbackBtn) {
+  feedbackBtn = document.createElement('button');
+  feedbackBtn.id = 'feedbackBtn';
+  feedbackBtn.className = 'feedback-btn';
+  feedbackBtn.textContent = '💬 反馈';
+  feedbackBtn.style.cssText = 'position:fixed;bottom:104px;right:16px;color:#888;font-size:13px;pointer-events:auto;cursor:pointer;background:none;border:1px solid #555;border-radius:4px;padding:2px 8px;font-family:inherit;display:none;';
+  document.body.appendChild(feedbackBtn);
+}
+function showFeedbackBtn(){ feedbackBtn.style.display = 'block'; }
+function hideFeedbackBtn(){ feedbackBtn.style.display = 'none'; }
+
 // 反馈按钮事件
-document.getElementById('feedbackBtn').addEventListener('click', () => {
+feedbackBtn.addEventListener('click', () => {
   document.getElementById('feedbackOverlay').style.display = 'flex';
   document.getElementById('feedbackText').focus();
 });
