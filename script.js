@@ -846,7 +846,7 @@ canvas.addEventListener('mousedown',(e)=>{
 });
 // 点击游戏容器时获得焦点（但不包括输入框）
 document.getElementById('gameContainer').addEventListener('click',(e)=>{
-  if (e.target.tagName !== 'INPUT') {
+  if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
     canvas.focus();
   }
 });
@@ -1014,22 +1014,14 @@ function recordGameResult(score, won, level) {
 
 function checkPassword() {
   const savedPassword = localStorage.getItem(PASSWORD_KEY);
-  const savedUsername = localStorage.getItem(USERNAME_KEY);
-
   if (!savedPassword) {
     // 首次进入，需要设置密码
     loginScreen.style.display = 'none';
     setPasswordScreen.style.display = 'flex';
     usernameScreen.style.display = 'none';
     startScreen.style.display = 'none';
-  } else if (!savedUsername) {
-    // 有密码但没用户名，需要设置用户名
-    loginScreen.style.display = 'none';
-    setPasswordScreen.style.display = 'none';
-    usernameScreen.style.display = 'flex';
-    startScreen.style.display = 'none';
   } else {
-    // 已有密码和用户名，显示登录界面
+    // 已有密码，显示登录界面（需要同时输入用户名和密码）
     loginScreen.style.display = 'flex';
     setPasswordScreen.style.display = 'none';
     usernameScreen.style.display = 'none';
@@ -1094,18 +1086,23 @@ document.getElementById('setUsernameBtn').addEventListener('click', () => {
 // 登录
 document.getElementById('loginBtn').addEventListener('click', () => {
   const inputPwd = document.getElementById('loginPassword').value;
+  const inputUser = document.getElementById('loginUsername').value.trim();
   const savedPassword = localStorage.getItem(PASSWORD_KEY);
-  const savedUsername = localStorage.getItem(USERNAME_KEY);
   const hintEl = document.getElementById('loginHintText');
 
+  if (!inputUser) {
+    hintEl.textContent = '请输入用户名';
+    hintEl.style.color = '#ff6666';
+    return;
+  }
   if (inputPwd === savedPassword) {
-    // 密码正确，加载用户数据
-    if (savedUsername) {
-      setCurrentUser(savedUsername);
-    }
+    // 密码正确，设置当前用户
+    localStorage.setItem(USERNAME_KEY, inputUser);
+    setCurrentUser(inputUser);
     loginScreen.style.display = 'none';
     startScreen.style.display = 'flex';
     document.getElementById('loginPassword').value = '';
+    document.getElementById('loginUsername').value = '';
     hintEl.textContent = '';
     loadProgress();
     updateUsernameDisplay();
@@ -1119,6 +1116,12 @@ document.getElementById('loginBtn').addEventListener('click', () => {
 
 // 回车键登录
 document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('loginBtn').click();
+  }
+});
+// 回车登录（用户名输入框）
+document.getElementById('loginUsername').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
     document.getElementById('loginBtn').click();
   }
