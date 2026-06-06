@@ -444,7 +444,7 @@ function updateUI() {
   const rank=rankSystem.getCurrent();
   const rankEl=document.getElementById('rankDisplay');
   rankEl.textContent=rank.title;
-  rankEl.className=rank.name;
+  rankEl.className='rank-badge '+rank.name;
   rankEl.style.color=rank.color;
   rankEl.style.display=game.running?'none':'block';
   // 更新主页面等级显示
