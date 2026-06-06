@@ -64,7 +64,11 @@
       <button class="login-btn" id="loginBtn">进入游戏</button>
       <div class="login-hint">
         <span id="loginHintText"></span>
-        <a href="#" id="forgotPasswordLink" class="forgot-link">忘记密码？</a>
+        <div>
+          <a href="#" id="forgotPasswordLink" class="forgot-link">忘记密码？</a>
+          <span style="color:#555;margin:0 4px;">|</span>
+          <a href="#" id="firstTimeLink" class="forgot-link">首次使用？</a>
+        </div>
       </div>
       <div id="forgotPasswordHint" class="forgot-hint" style="display:none;">
         💡 提示：<span id="passwordHintDisplay"></span>
@@ -152,7 +156,7 @@
     <button class="menu-btn" id="victoryMenuBtn">返回主菜单</button>
   </div>
 </div>
-<script src="script.js?v=1012"></script>
+<script src="script.js?v=1013"></script>
 <script>
   // 注册 Service Worker
   if ('serviceWorker' in navigator) {

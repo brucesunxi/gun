@@ -1143,6 +1143,13 @@ document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
   }
 });
 
+// 首次使用？进入设置密码
+document.getElementById('firstTimeLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  loginScreen.style.display = 'none';
+  setPasswordScreen.style.display = 'flex';
+});
+
 // 设置密码时回车键
 document.getElementById('confirmPassword').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
