@@ -72,8 +72,8 @@
   }
   #gameOver { z-index: 25; }
   #victoryScreen { z-index: 25; }
-  #gameOver ~ .sound-toggle, #gameOver ~ .bgm-toggle, #gameOver ~ .shop-btn, #gameOver ~ .weapon-info, #gameOver ~ #trainStats, #gameOver ~ .feedback-btn { display: none !important; }
-  #victoryScreen ~ .sound-toggle, #victoryScreen ~ .bgm-toggle, #victoryScreen ~ .shop-btn, #victoryScreen ~ .weapon-info, #victoryScreen ~ #trainStats, #victoryScreen ~ .feedback-btn { display: none !important; }
+  #gameOver ~ .sound-toggle, #gameOver ~ .bgm-toggle, #gameOver ~ .shop-btn, #gameOver ~ .weapon-info, #gameOver ~ #trainStats { display: none !important; }
+  #victoryScreen ~ .sound-toggle, #victoryScreen ~ .bgm-toggle, #victoryScreen ~ .shop-btn, #victoryScreen ~ .weapon-info, #victoryScreen ~ #trainStats { display: none !important; }
   #gameOver h1 { font-size: 48px; color: #ff4444; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255,0,0,0.5); }
   #victoryScreen h1 { font-size: 48px; color: #ffd700; margin-bottom: 10px; text-shadow: 0 0 30px rgba(255,215,0,0.5); }
   #gameOver p, #victoryScreen p { font-size: 20px; margin: 4px 0; }
@@ -345,8 +345,7 @@
   #startScreen ~ #trainStats,
   #startScreen ~ .touch-zoom,
   #startScreen ~ #ui,
-  #startScreen ~ #touchZoomBtn,
-  #startScreen ~ .feedback-btn { display: none !important; }
+  #startScreen ~ #touchZoomBtn { display: none !important; }
   /* Also hide UI elements during login, register, and username screens */
   #loginScreen ~ .sound-toggle,
   #loginScreen ~ .bgm-toggle,
@@ -355,8 +354,7 @@
   #loginScreen ~ #trainStats,
   #loginScreen ~ .touch-zoom,
   #loginScreen ~ #ui,
-  #loginScreen ~ #touchZoomBtn,
-  #loginScreen ~ .feedback-btn { display: none !important; }
+  #loginScreen ~ #touchZoomBtn { display: none !important; }
   #setPasswordScreen ~ .sound-toggle,
   #setPasswordScreen ~ .bgm-toggle,
   #setPasswordScreen ~ .shop-btn,
@@ -364,8 +362,7 @@
   #setPasswordScreen ~ #trainStats,
   #setPasswordScreen ~ .touch-zoom,
   #setPasswordScreen ~ #ui,
-  #setPasswordScreen ~ #touchZoomBtn,
-  #setPasswordScreen ~ .feedback-btn { display: none !important; }
+  #setPasswordScreen ~ #touchZoomBtn { display: none !important; }
   #usernameScreen ~ .sound-toggle,
   #usernameScreen ~ .bgm-toggle,
   #usernameScreen ~ .shop-btn,
@@ -373,8 +370,7 @@
   #usernameScreen ~ #trainStats,
   #usernameScreen ~ .touch-zoom,
   #usernameScreen ~ #ui,
-  #usernameScreen ~ #touchZoomBtn,
-  #usernameScreen ~ .feedback-btn { display: none !important; }
+  #usernameScreen ~ #touchZoomBtn { display: none !important; }
   #trainStats {
     display: none;
     position: fixed;
