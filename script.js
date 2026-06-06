@@ -1229,7 +1229,7 @@ function hideGameUI(){
 window.showOverlay = function(){
   const el = document.getElementById('feedbackOverlay');
   if(el){
-    el.style.display = 'flex';
+    el.style.setProperty('display', 'flex', 'important');
     const ft = document.getElementById('feedbackText');
     if(ft) setTimeout(()=>ft.focus(), 100);
   }
