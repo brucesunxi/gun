@@ -1,7 +1,7 @@
 // 跨设备反馈 API (Vercel Serverless Function)
-// 使用 Vercel Blob 存储 feedback.json，无需数据库
+// 使用 Vercel KV 存储，用户连接 KV 后自动生效
 
-const { put, list } = require('@vercel/blob');
+const KV_KEY = 'feedback_data';
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,69 +13,54 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
-  const available = !!blobToken;
+  const url = process.env.KV_REST_API_URL;
+  const token = process.env.KV_REST_API_TOKEN;
+  const available = !!(url && token);
+
+  async function kvGet() {
+    const r = await fetch(`${url}/get/${KV_KEY}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!r.ok) throw new Error(`KV GET ${r.status}`);
+    const d = await r.json();
+    return d.result || [];
+  }
+
+  async function kvSet(val) {
+    await fetch(`${url}/set/${KV_KEY}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(JSON.stringify(val))
+    });
+  }
 
   try {
     if (req.method === 'GET') {
-      let data = [];
-      if (available) {
-        try {
-          const { blobs } = await list({ prefix: 'feedback.json', token: blobToken });
-          if (blobs.length > 0) {
-            const resp = await fetch(blobs[0].url);
-            data = await resp.json();
-            if (!Array.isArray(data)) data = [];
-          }
-        } catch (e) { /* 文件尚不存在 */ }
-      }
-      return res.json({ ok: true, data, source: available ? 'blob' : 'local' });
+      const data = available ? await kvGet() : [];
+      return res.json({ ok: true, data, source: available ? 'kv' : 'local' });
 
     } else if (req.method === 'POST') {
       const { text, level, score, username } = req.body || {};
       if (!text || !text.trim()) {
         return res.status(400).json({ ok: false, message: '反馈内容不能为空' });
       }
-
       const fb = { text: text.trim(), time: new Date().toISOString(), level: level || 1, score: score || 0, username: username || '匿名用户' };
-
       if (available) {
-        let all = [];
-        try {
-          const { blobs } = await list({ prefix: 'feedback.json', token: blobToken });
-          if (blobs.length > 0) {
-            const resp = await fetch(blobs[0].url);
-            all = await resp.json();
-            if (!Array.isArray(all)) all = [];
-          }
-        } catch (e) { /* 首次写入 */ }
+        const all = await kvGet();
         all.push(fb);
-        await put('feedback.json', JSON.stringify(all), {
-          access: 'public',
-          contentType: 'application/json',
-          addRandomSuffix: false,
-          token: blobToken
-        });
+        await kvSet(all);
       }
-
-      return res.json({ ok: true, data: fb, source: available ? 'blob' : 'local' });
+      return res.json({ ok: true, data: fb, source: available ? 'kv' : 'local' });
 
     } else if (req.method === 'DELETE') {
-      if (available) {
-        try {
-          const { blobs } = await list({ prefix: 'feedback.json', token: blobToken });
-          for (const b of blobs) {
-            await fetch(b.url, { method: 'DELETE', headers: { Authorization: `Bearer ${blobToken}` } });
-          }
-        } catch (e) { /* ignore */ }
-      }
-      return res.json({ ok: true, source: available ? 'blob' : 'local' });
+      if (available) await kvSet([]);
+      return res.json({ ok: true, source: available ? 'kv' : 'local' });
 
     } else {
       return res.status(405).json({ ok: false, message: 'Method not allowed' });
     }
   } catch (err) {
-    console.error('Feedback API error:', err.message);
+    console.error('KV error:', err.message);
     return res.json({ ok: true, data: [], source: 'local', message: err.message });
   }
 };
