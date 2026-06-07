@@ -653,7 +653,7 @@ function resetGame() {
   // 每关只重置武器购买状态，其他升级保留
   shopItems.forEach(i=>{if(i.id==='rifle'||i.id==='shotgun'||i.id==='sniper')i.bought=false;});
   document.getElementById('trainStats').style.display=game.trainingMode?'block':'none';
-  document.getElementById('trainExitBtn').style.display=game.trainingMode?'block':'none';
+  document.getElementById('trainExitBtn').style.display='block';
   document.getElementById('shopBtn').style.display=game.trainingMode?'none':'';
   updateUI();weaponInfo.textContent='\u{1F52B} 手枪 (18伤害)';
   if(game.trainingMode){waveInfo.textContent='\u{1F3AF} 训练场 — 射击移动靶练习！';waveInfo.style.opacity='1';setTimeout(()=>{waveInfo.style.opacity='0';},2500);}
