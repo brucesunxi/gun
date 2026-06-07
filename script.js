@@ -1170,7 +1170,7 @@ function checkPassword() {
 }
 
 // 设置密码（注册流程：用户名+密码一次完成）
-document.getElementById('setPasswordBtn').addEventListener('click', () => {
+document.getElementById('setPasswordBtn').addEventListener('click', async () => {
   const regUser = document.getElementById('regUsername').value.trim();
   const newPwd = document.getElementById('newPassword').value.trim();
   const confirmPwd = document.getElementById('confirmPassword').value.trim();
@@ -1198,6 +1198,13 @@ document.getElementById('setPasswordBtn').addEventListener('click', () => {
     return;
   }
 
+  // 检查用户是否被封禁
+  const isBanned = await checkUserBanned(regUser);
+  if (isBanned) {
+    errorEl.textContent = '该账号已被封禁，无法注册';
+    return;
+  }
+
   localStorage.setItem(PASSWORD_KEY, newPwd);
   localStorage.setItem(USERNAME_KEY, regUser);
   if (hint) {
@@ -1215,7 +1222,7 @@ document.getElementById('setPasswordBtn').addEventListener('click', () => {
 });
 
 // 设置用户名
-document.getElementById('setUsernameBtn').addEventListener('click', () => {
+document.getElementById('setUsernameBtn').addEventListener('click', async () => {
   const username = document.getElementById('usernameInput').value.trim();
   const errorEl = document.getElementById('usernameError');
 
@@ -1225,6 +1232,13 @@ document.getElementById('setUsernameBtn').addEventListener('click', () => {
   }
   if (username.length > 20) {
     errorEl.textContent = '用户名不能超过20位字符';
+    return;
+  }
+
+  // 检查用户是否被封禁
+  const isBanned = await checkUserBanned(username);
+  if (isBanned) {
+    errorEl.textContent = '该账号已被封禁，无法登录';
     return;
   }
 
