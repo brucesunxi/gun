@@ -44,7 +44,19 @@ module.exports = async (req, res) => {
       return res.json({ ok: true, data, source: 'kv' });
 
     } else if (req.method === 'POST') {
-      const { text, level, score, username } = req.body || {};
+      const { action, text, level, score, username, time } = req.body || {};
+
+      // 处理单条删除
+      if (action === 'delete' && time) {
+        if (available) {
+          const all = await kvGet();
+          const filtered = all.filter(f => f.time !== time);
+          await kvSet(filtered);
+        }
+        return res.json({ ok: true, deleted: time, source: available ? 'kv' : 'local' });
+      }
+
+      // 处理新增反馈
       if (!text || !text.trim()) {
         return res.status(400).json({ ok: false, message: '反馈内容不能为空' });
       }

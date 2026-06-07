@@ -723,6 +723,25 @@
   .admin-feedback-item .fb-user { color: #8aa84a; font-weight: bold; }
   .admin-feedback-item .fb-time { color: #666; font-size: 11px; }
   .admin-feedback-item .fb-text { color: #fff; margin-top: 4px; }
+  .fb-del-btn {
+    position: absolute;
+    top: 4px; right: 4px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(200,50,50,0.3);
+    color: #cc6666;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    opacity: 0.4;
+    transition: opacity 0.15s;
+  }
+  .fb-del-btn:hover { opacity: 1; background: rgba(200,50,50,0.6); color: #fff; }
   .admin-user-item .u-name { color: #ffd700; font-weight: bold; }
   .admin-user-item .u-stats { color: #aaa; font-size: 11px; }
   .admin-actions {

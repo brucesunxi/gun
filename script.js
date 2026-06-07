@@ -1593,16 +1593,42 @@ function renderAdminFeedback() {
   let html = `<div style="color:#888;font-size:11px;margin-bottom:8px;">共 ${feedbackList.length} 条反馈（${syncStatus}）</div>`;
   feedbackList.slice().reverse().forEach(f => {
     const time = new Date(f.time).toLocaleString('zh-CN');
-    html += `<div class="admin-feedback-item">
+    html += `<div class="admin-feedback-item" style="position:relative;">
       <span class="fb-user">${escHtml(f.username)}</span>
       <span class="fb-time">${time}</span>
       <div class="fb-text">${escHtml(f.text)}</div>
       <div style="color:#666;font-size:11px;">关卡 ${f.level} · 得分 ${f.score}</div>
+      <button class="fb-del-btn" data-time="${escHtml(f.time)}" title="删除此反馈">×</button>
     </div>`;
   });
   list.innerHTML = html;
+  // 绑定删除按钮事件
+  list.querySelectorAll('.fb-del-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const time = btn.dataset.time;
+      if (confirm('确定删除此反馈？')) {
+        deleteFeedback(time);
+        renderAdminFeedback();
+      }
+    });
+  });
   markFeedbackAsRead();
   checkNewFeedback();
+}
+
+function deleteFeedback(time) {
+  if (!isAdmin) return;
+  // 从本地删除
+  let allFeedback = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
+  allFeedback = allFeedback.filter(f => f.time !== time);
+  localStorage.setItem(FEEDBACK_KEY, JSON.stringify(allFeedback));
+  // 同步到云端
+  fetch(FEEDBACK_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'delete', time })
+  }).catch(() => {});
 }
 
 function renderAdminUsers() {
