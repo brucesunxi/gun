@@ -254,6 +254,8 @@ function saveProgress(){
   localStorage.setItem(LEVEL_KEY,JSON.stringify({unlockedLevel:game.unlockedLevel,currentLevel:game.currentLevel}));
 }
 function unlockNextLevel(){
+  // 通关血量奖励：恢复50点（不超过最大值）
+  player.hp = Math.min(player.maxHp, player.hp + 50);
   // 先解锁下一关
   if(game.currentLevel>=game.unlockedLevel&&game.currentLevel<8){
     game.unlockedLevel=game.currentLevel+1;
