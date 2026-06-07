@@ -482,6 +482,7 @@ function checkBossDefeated() {
 }
 function gameOver() {
   game.running=false;game.over=true;
+  game.diedThisRound=true;  // 标记本局战死
   finalScore.textContent=game.score;finalKills.textContent=game.kills;finalTotal.textContent=game.totalEnemies;
   gameOverScreen.style.display='flex';createExplosion(player.x,player.y,'#ff0000',40);game.screenShake=0;playSound('gameover');
   recordGameResult(game.score, false, game.currentLevel);
@@ -641,9 +642,10 @@ function resetGame() {
   game.over=false;game.won=false;game.zoomed=false;game.bossActive=false;game.boss=null;game.bosses=[];game.bossesDefeated=0;game.postWaveSpawned=false;
   game.levelConfig=cfg;
   keys.zoom=false;game.running=true;
-  // 血量部分恢复：恢复30%最大血量（最少20点），难度越高恢复越少
-  const hpRestore=Math.max(10,Math.round(player.maxHp*0.3));
-  player.x=W/2;player.hp=Math.min(player.maxHp,player.hp+hpRestore);player.weapon='pistol';player.damageMult=1;player.fireRateMult=1;player.armor=0;
+  // 血量恢复：战死后来一局恢复50点，正常通关恢复30%
+  const hpRestore = game.diedThisRound ? 50 : Math.max(10, Math.round(player.maxHp * 0.3));
+  player.x=W/2; player.hp=Math.min(player.maxHp, hpRestore); player.weapon='pistol'; player.damageMult=1; player.fireRateMult=1; player.armor=0;
+  game.diedThisRound = false;  // 重置标志
   player.invincible=game.trainingMode?9999:60;player.shootCooldown=0;
   if(game.aiTeammateEnabled){initAITeammate(game.aiTeammateEnabled);}
   else{aiTeammate.active=false;}
@@ -745,10 +747,13 @@ function drawSupplies() {
 }
 function drawShellCasings() { for(const s of game.shellCasings){ctx.globalAlpha=s.life/40;ctx.fillStyle='#ccaa44';ctx.save();ctx.translate(s.x,s.y);ctx.rotate(s.rotation);ctx.fillRect(-2,-4,4,8);ctx.restore();}ctx.globalAlpha=1; }
 function drawHpBar() {
-  const barW=160,barH=8,bx=20,by=H-38;ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(bx-1,by-1,barW+2,barH+2);
-  const r=player.hp/player.maxHp,grad=ctx.createLinearGradient(bx,by,bx+barW,by);
+  // 手机适配：调整血条位置和大小
+  const isMobile = window.innerWidth <= 920;
+  const barW = isMobile ? 120 : 160, barH = isMobile ? 6 : 8, bx = isMobile ? 10 : 20, by = isMobile ? H - 25 : H - 38;
+  ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(bx-1,by-1,barW+2,barH+2);
+  const r=Math.max(0, Math.min(1, player.hp/player.maxHp)),grad=ctx.createLinearGradient(bx,by,bx+barW,by);
   grad.addColorStop(0,'#ff4444');grad.addColorStop(0.5,'#ffaa44');grad.addColorStop(1,'#44cc44');
-  ctx.fillStyle=grad;ctx.fillRect(bx,by,barW*r,barH);ctx.fillStyle='#fff';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText('HP '+Math.ceil(player.hp)+'/'+player.maxHp,bx+barW/2,by+7);
+  ctx.fillStyle=grad;ctx.fillRect(bx,by,barW*r,barH);ctx.fillStyle='#fff';ctx.font=isMobile?'9px sans-serif':'10px sans-serif';ctx.textAlign='center';ctx.fillText('HP '+Math.ceil(player.hp)+'/'+player.maxHp,bx+barW/2,by+(isMobile?5:7));
 }
 function drawScopeOverlay() {
   const cx=W/2,cy=H/2,g=ctx.createRadialGradient(cx,cy,W*0.18,cx,cy,W*0.55);
@@ -806,7 +811,7 @@ function update() {
     if(b.x<-20||b.x>W+20||b.y<-20||b.y>H+20){game.bullets.splice(i,1);continue;}
     if(b.enemyBullet){if(dist(b,player)<15){playerTakeDamage(b.damage);game.bullets.splice(i,1);createExplosion(b.x,b.y,'#ff4444',5);continue;}if(aiTeammate.active&&dist(b,aiTeammate)<15){aiTeammateTakeDamage(b.damage);game.bullets.splice(i,1);createExplosion(b.x,b.y,'#ff4444',5);continue;}}
     else if(game.bossActive&&game.boss&&Math.abs(b.x-game.boss.x)<game.boss.w*0.5&&Math.abs(b.y-game.boss.y)<game.boss.h*0.5){game.boss.hp-=b.damage*0.8;game.bullets.splice(i,1);createExplosion(b.x,b.y,'#ff8800',8);playSound('enemy_hit');if(game.boss.hp<=0){game.boss.hp=0;addScore(50);checkBossDefeated();}}
-    else{for(let j=game.enemies.length-1;j>=0;j--){const e=game.enemies[j],hw=e.isTarget?e.w*0.5:20,hh=e.isTarget?e.h*0.5:25;if(Math.abs(b.x-e.x)<hw&&Math.abs(b.y-e.y)<hh){e.hp-=b.damage;game.bullets.splice(i,1);if(e.isTarget){game.hits++;if(e.hp<=0){game.combo++;if(game.combo>game.maxCombo)game.maxCombo=game.combo;addScore(Math.round(e.points*(1+Math.floor(game.combo/5)*0.5)));game.kills++;createExplosion(e.x,e.y,'#88ddff',15);playSound('explosion');if(game.combo>1){waveInfo.textContent='\u{1F525} '+game.combo+' 连击！';waveInfo.style.opacity='1';setTimeout(()=>{waveInfo.style.opacity='0';},600);}game.enemies.splice(j,1);updateTrainingStats();}else{createExplosion(b.x,b.y,'#88ddff',5);playSound('enemy_hit');}}else{createExplosion(b.x,b.y,'#ffaa44',5);playSound('enemy_hit');if(e.hp<=0){addScore(10);game.kills++;createExplosion(e.x,e.y,'#ff6600',25);playSound('explosion');if(Math.random()<0.08)spawnSupply();game.enemies.splice(j,1);updateUI();if(game.kills>=game.totalEnemies&&!game.bossActive&&!game.trainingMode)triggerBoss();}}break;}}}
+    else{for(let j=game.enemies.length-1;j>=0;j--){const e=game.enemies[j],hw=e.isTarget?e.w*0.5:20,hh=e.isTarget?e.h*0.5:25;if(Math.abs(b.x-e.x)<hw&&Math.abs(b.y-e.y)<hh){e.hp-=b.damage;game.bullets.splice(i,1);if(e.isTarget){game.hits++;if(e.hp<=0){game.combo++;if(game.combo>game.maxCombo)game.maxCombo=game.combo;addScore(Math.round(e.points*(1+Math.floor(game.combo/5)*0.5)));game.kills++;createExplosion(e.x,e.y,'#88ddff',15);playSound('explosion');if(game.combo>1){waveInfo.textContent='\u{1F525} '+game.combo+' 连击！';waveInfo.style.opacity='1';setTimeout(()=>{waveInfo.style.opacity='0';},1000);}game.enemies.splice(j,1);updateTrainingStats();}else{createExplosion(b.x,b.y,'#88ddff',5);playSound('enemy_hit');}}else{createExplosion(b.x,b.y,'#ffaa44',5);playSound('enemy_hit');if(e.hp<=0){addScore(10);game.kills++;createExplosion(e.x,e.y,'#ff6600',25);playSound('explosion');if(Math.random()<0.15)spawnSupply();game.enemies.splice(j,1);updateUI();if(game.kills>=game.totalEnemies&&!game.bossActive&&!game.trainingMode)triggerBoss();}}break;}}}
   }
   for(let i=game.supplies.length-1;i>=0;i--){const s=game.supplies[i];s.y+=s.speed;if(dist(s,player)<28){if(player.weapon==='pistol'){player.weapon='rifle';weaponInfo.textContent='\u{1F52B} 步枪 (25·连发)';}else if(player.weapon==='rifle'){player.weapon='shotgun';weaponInfo.textContent='\u{1F52B} 霰弹枪 (15×6·散射)';}else if(player.weapon==='shotgun'){player.weapon='sniper';weaponInfo.textContent='\\\u{1F3AF} 狙击枪 (60·远程)';}addScore(20);updateUI();playSound('pickup');createExplosion(s.x,s.y,'#ffd700',15);game.supplies.splice(i,1);continue;}if(s.y>H+30)game.supplies.splice(i,1);}
   for(let i=game.particles.length-1;i>=0;i--){const p=game.particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.1;p.life--;if(p.life<=0)game.particles.splice(i,1);}

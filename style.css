@@ -872,7 +872,7 @@
   #startScreen ~ .shop-btn,
   #startScreen ~ .weapon-info,
   #startScreen ~ #trainStats,
-  #startScreen ~ #trainExitBtn,
+  /* #startScreen ~ #trainExitBtn, */ /* 修复：训练场需要退出按钮 */
   #startScreen ~ .touch-zoom,
   #startScreen ~ #touchZoomBtn { display: none !important; }
 
