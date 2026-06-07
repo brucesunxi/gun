@@ -4,538 +4,399 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    font-family: 'PingFang SC','Microsoft YaHei',sans-serif;
     overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+    user-select: none;
   }
+  canvas { display: block; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #1a1a1a; }
+  ::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+
+  /* ==================== LIGHT THEME ==================== */
+  @media (prefers-color-scheme: light) {
+    body { background: #f0f0f0; }
+    #gameContainer { background: #fff; box-shadow: 0 2px 20px rgba(0,0,0,0.1); border-color: #ccc; }
+    #ui { background: rgba(0,0,0,0.06); color: #333; }
+    #startScreen { background: rgba(255,255,255,0.97); }
+    #startScreen h1 { color: #222; }
+    #startScreen .sub { color: #666; }
+    #startScreen .controls { background: #f0f0f0; color: #333; border-color: #ccc; }
+    #startScreen .controls kbd { background: #ddd; color: #333; border-color: #aaa; }
+    #loginScreen { background: rgba(255,255,255,0.97); }
+    #loginScreen h1 { color: #222; }
+    .login-box { background: #f0f0f0; border-color: #ccc; }
+    .login-box input { background: #fff; color: #333; border-color: #ccc; }
+    .login-box input:focus { border-color: #6a8a3a; }
+    #usernameScreen { background: rgba(255,255,255,0.97); }
+    #usernameScreen h1 { color: #222; }
+    #setPasswordScreen { background: rgba(255,255,255,0.97); }
+    #setPasswordScreen h1 { color: #222; }
+    #gameOver { background: rgba(255,255,255,0.97); }
+    #gameOver h1 { color: #cc3333; }
+    #victoryScreen { background: rgba(255,255,255,0.97); }
+    #victoryScreen h1 { color: #b8860b; }
+    .user-info { color: #333; }
+    .level-btn { background: #e0e0e0; color: #333; border-color: #bbb; }
+    .level-btn.unlocked { background: #d4edda; border-color: #6a8a3a; color: #2d6a2d; }
+    .level-btn.active { background: #6a8a3a; color: #fff; border-color: #6a8a3a; }
+    .mode-btn { background: #e0e0e0; color: #555; border-color: #ccc; }
+    .mode-btn.active { background: #6a8a3a; color: #fff; border-color: #6a8a3a; }
+    .mode-btn.train { background: #e0e0e0; color: #555; }
+    .mode-btn.train.active { background: #5a7a9a; border-color: #5a7a9a; color: #fff; }
+    .ai-btn { background: #e0e0e0; color: #555; border-color: #ccc; }
+    .ai-btn.active { background: #5a7a9a; border-color: #5a7a9a; color: #fff; }
+    #startBtn { background: #6a8a3a; color: #fff; }
+    #startBtn:hover { background: #7a9a4a; }
+    .end-btn { background: #6a8a3a; color: #fff; }
+    .end-btn:hover { background: #7a9a4a; }
+    .menu-btn { background: #555; color: #ccc; }
+    .menu-btn:hover { background: #666; color: #fff; }
+    .login-btn { background: #6a8a3a; color: #fff; }
+    .login-btn:hover { background: #7a9a4a; }
+    .forgot-link { color: #6a8a3a; }
+    .feedback-btn { color: #666; border-color: #aaa; }
+    .feedback-btn:hover { border-color: #6a8a3a; color: #6a8a3a; }
+    #feedbackOverlay { background: rgba(0,0,0,0.6); }
+    .feedback-panel { background: #fff; border-color: #ccc; }
+    .feedback-panel h3 { color: #333; }
+    .feedback-panel textarea { background: #f5f5f5; color: #333; border-color: #ccc; }
+    .feedback-panel textarea:focus { border-color: #6a8a3a; }
+    #feedbackSubmit { background: #6a8a3a; color: #fff; }
+    #feedbackClose { background: #ddd; color: #555; }
+    #feedbackClose:hover { background: #ccc; }
+    .shop-btn { color: #b8860b; background: rgba(180,130,20,0.1); border-color: #b8860b; }
+    .shop-btn:hover { background: rgba(180,130,20,0.2); color: #b8860b; }
+    #shopOverlay { background: rgba(0,0,0,0.6); }
+    .shop-panel { background: #fff; border-color: #b8860b; }
+    .shop-panel h2 { color: #b8860b; }
+    .shop-panel .coin { color: #555; }
+    .shop-panel .coin span { color: #b8860b; }
+    .shop-item { background: #f5f5f5; border-color: #ddd; color: #333; }
+    .shop-item:hover { border-color: #b8860b; background: #fafafa; }
+    .shop-item.bought { opacity: 0.4; }
+    .shop-close { background: #ddd; color: #555; border-color: #ccc; }
+    .shop-close:hover { background: #ccc; color: #333; border-color: #aaa; }
+    .start-bgm-row { color: #555; }
+    .start-bgm-btn { background: #e0e0e0; color: #555; border-color: #bbb; }
+    .start-bgm-btn.on { background: #6a8a3a; color: #fff; border-color: #6a8a3a; }
+    .weapon-info { background: rgba(255,255,255,0.9); color: #333; border-color: #ccc; }
+    .sound-toggle { background: rgba(255,255,255,0.8); color: #555; border-color: #aaa; }
+    .sound-toggle:hover { border-color: #6a8a3a; color: #333; }
+    .bgm-toggle { background: rgba(255,255,255,0.8); color: #555; border-color: #aaa; }
+    .bgm-toggle.on { color: #6a8a3a; border-color: #6a8a3a; }
+    .bgm-toggle:hover { border-color: #6a8a3a; color: #333; }
+    .train-exit-btn { color: #666; border-color: #aaa; }
+    .train-exit-btn:hover { border-color: #cc3333; color: #cc3333; }
+    #touchZoomBtn { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); color: rgba(0,0,0,0.3); }
+    .preset { background: #e0e0e0; color: #555; border-color: #bbb; }
+    .preset.active { background: #6a8a3a; color: #fff; border-color: #6a8a3a; }
+    .set-pwd-desc { color: #666; }
+    .error-msg { color: #cc3333; }
+    .forgot-hint { background: #f0f0f0; border-color: #ccc; color: #555; }
+    #rankDisplay { color: #333; }
+    #devNotification { background: #e44; color: #fff; }
+    #trainStats { color: #333; background: rgba(255,255,255,0.9); }
+    .touch-dir { background: rgba(0,0,0,0.08); border-color: rgba(0,0,0,0.15); color: rgba(0,0,0,0.4); }
+    .touch-dir:active { background: rgba(0,0,0,0.2); color: #333; }
+    #touchFire { background: rgba(255,60,60,0.2); border-color: rgba(255,60,60,0.3); }
+    #touchFire:active { background: rgba(255,60,60,0.5); }
+  }
+
+  /* ==================== GAME LAYOUT ==================== */
   #gameContainer {
     position: relative;
-    border: 3px solid #5a5a3a;
+    width: 900px; height: 650px;
+    background: #1a1a2e;
+    border: 2px solid #333;
     border-radius: 8px;
-    box-shadow: 0 0 40px rgba(100, 80, 0, 0.3);
+    overflow: hidden;
   }
-  canvas {
+  #gameCanvas {
     display: block;
-    background: #3a2a1a;
+    width: 100%;
+    height: 100%;
     cursor: crosshair;
   }
+  #gameCanvas:focus { outline: none; }
   #ui {
     position: absolute;
     top: 0; left: 0; right: 0;
-    padding: 10px 16px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    pointer-events: none;
-    color: #fff;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-    font-size: 16px;
-    font-weight: bold;
-  }
-  #ui span { color: #ffd700; }
-  #rankDisplay {
-    display: none !important;
-  }
-  #rankDisplay.silver { color: #c0c0c0; }
-  #rankDisplay.gold { color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.5); }
-  #rankDisplay.platinum { color: #e5e4e2; text-shadow: 0 0 8px rgba(229,228,226,0.5); }
-  #rankDisplay.diamond { color: #00ffff; text-shadow: 0 0 8px rgba(0,255,255,0.5); }
-  #rankDisplay.master { color: #9d00ff; text-shadow: 0 0 10px rgba(157,0,255,0.6); }
-  #rankDisplay.legend { color: #ff6600; text-shadow: 0 0 12px rgba(255,102,0,0.7); }
-  #rankDisplay.god { color: #ff0000; text-shadow: 0 0 15px rgba(255,0,0,0.8); font-size: 15px; }
-  /* Start screen rank display */
-  .start-rank {
-    font-size: 16px;
-    font-weight: bold;
-    margin: 8px 0;
-    color: #cd7f32;
-    display: inline-block;
-  }
-  .start-rank.bronze { color: #cd7f32; }
-  .start-rank.silver { color: #c0c0c0; }
-  .start-rank.gold { color: #ffd700; }
-  .start-rank.platinum { color: #e5e4e2; }
-  .start-rank.diamond { color: #00ffff; }
-  .start-rank.master { color: #9d00ff; }
-  .start-rank.legend { color: #ff6600; }
-  .start-rank.god { color: #ff0000; font-size: 18px; }
-  #gameOver, #victoryScreen {
-    display: none;
-    position: absolute;
-    inset: 0;
-    background: #1a1a1a;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    color: #fff;
-    pointer-events: auto;
-  }
-  #gameOver { z-index: 25; }
-  #victoryScreen { z-index: 25; }
-  #gameOver ~ .sound-toggle, #gameOver ~ .bgm-toggle, #gameOver ~ .shop-btn, #gameOver ~ .weapon-info, #gameOver ~ #trainStats { display: none !important; }
-  #victoryScreen ~ .sound-toggle, #victoryScreen ~ .bgm-toggle, #victoryScreen ~ .shop-btn, #victoryScreen ~ .weapon-info, #victoryScreen ~ #trainStats { display: none !important; }
-  #gameOver h1 { font-size: 48px; color: #ff4444; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255,0,0,0.5); }
-  #victoryScreen h1 { font-size: 48px; color: #ffd700; margin-bottom: 10px; text-shadow: 0 0 30px rgba(255,215,0,0.5); }
-  #gameOver p, #victoryScreen p { font-size: 20px; margin: 4px 0; }
-  .end-btn {
-    margin-top: 20px;
-    padding: 12px 32px;
-    font-size: 20px;
-    font-family: inherit;
-    border-radius: 6px;
-    cursor: pointer;
-    pointer-events: auto;
-    transition: all 0.2s;
-  }
-  .end-btn:hover { transform: scale(1.05); }
-  #gameOver .end-btn { background: #8b0000; color: #fff; border: 2px solid #ff4444; }
-  #gameOver .end-btn:hover { background: #cc0000; }
-  #victoryScreen .end-btn { background: #556b2f; color: #fff; border: 2px solid #ffd700; }
-  #victoryScreen .end-btn:hover { background: #6b8e3a; }
-  .menu-btn {
-    margin-top: 8px;
-    padding: 8px 24px;
-    font-size: 14px;
-    font-family: inherit;
-    background: transparent;
-    color: #888;
-    border: 1px solid #555;
-    border-radius: 4px;
-    cursor: pointer;
-    pointer-events: auto;
-    transition: all 0.2s;
-  }
-  .menu-btn:hover { color: #fff; border-color: #aaa; }
-
-  /* Login Screen */
-  #loginScreen, #setPasswordScreen, #usernameScreen {
-    position: absolute;
-    inset: 0;
-    background: #1a1a1a;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    color: #fff;
-    z-index: 100;
-  }
-  #loginScreen h1, #setPasswordScreen h1, #usernameScreen h1 {
-    font-size: 42px;
+    padding: 6px 14px;
+    background: rgba(0,0,0,0.5);
     color: #ffd700;
-    text-shadow: 0 0 30px rgba(255,215,0,0.4);
-    margin-bottom: 30px;
+    font-size: 13px;
+    z-index: 10;
+    pointer-events: none;
+  }
+  #waveInfo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    font-size: 36px;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255,215,0,0.5);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 5;
+    text-align: center;
+  }
+  #rankDisplay {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: #aaa;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .weapon-info {
+    position: absolute;
+    bottom: 6px;
+    left: 10px;
+    color: #ccc;
+    font-size: 11px;
+    background: rgba(0,0,0,0.7);
+    padding: 2px 10px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    z-index: 10;
+  }
+  #trainStats {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #aaa;
+    font-size: 12px;
+    text-align: center;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* ==================== LOGIN SCREEN ==================== */
+  #loginScreen, #usernameScreen, #setPasswordScreen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10,10,20,0.97);
+    z-index: 50;
+  }
+  #loginScreen h1, #usernameScreen h1, #setPasswordScreen h1 {
+    color: #ffd700;
+    font-size: 28px;
+    margin-bottom: 20px;
   }
   .login-box {
-    background: rgba(255,255,255,0.05);
-    padding: 30px 40px;
+    background: #1a1a2e;
+    padding: 24px 32px;
     border-radius: 12px;
     border: 1px solid #444;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
     min-width: 280px;
   }
   .login-box input {
-    padding: 12px 16px;
-    font-size: 16px;
-    border: 2px solid #555;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #0a0a1a;
+    border: 1px solid #444;
     border-radius: 6px;
-    background: #222;
     color: #fff;
-    font-family: inherit;
     outline: none;
-    transition: border-color 0.2s;
   }
-  .login-box input:focus {
-    border-color: #ffd700;
-  }
-  .login-box input::placeholder {
-    color: #888;
-  }
+  .login-box input:focus { border-color: #8aa84a; }
   .login-btn {
-    padding: 12px 24px;
-    font-size: 16px;
-    background: #5a4a2a;
-    color: #ffd700;
-    border: 2px solid #8a7a4a;
-    border-radius: 6px;
-    cursor: pointer;
+    padding: 10px;
+    font-size: 15px;
     font-family: inherit;
-    transition: all 0.2s;
-    margin-top: 10px;
-  }
-  .login-btn:hover {
-    background: #7a6a4a;
-    border-color: #ffd700;
-  }
-  .login-hint {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 13px;
-    color: #888;
-    margin-top: 5px;
-  }
-  .forgot-link {
-    color: #66aaff;
-    text-decoration: none;
+    background: #556b2f;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
     cursor: pointer;
   }
-  .forgot-link:hover {
-    color: #88ccff;
-    text-decoration: underline;
-  }
+  .login-btn:hover { background: #6b8e3a; }
+  .login-hint { text-align: center; font-size: 13px; }
+  .login-hint span { color: #888; }
+  .forgot-link { color: #8aa84a; font-size: 12px; text-decoration: none; }
+  .forgot-link:hover { text-decoration: underline; }
   .forgot-hint {
-    background: rgba(255,215,0,0.1);
-    border: 1px solid #8a7a4a;
-    border-radius: 6px;
-    padding: 12px;
-    font-size: 14px;
-    color: #ffd700;
-    margin-top: 10px;
-    text-align: center;
-  }
-  .set-pwd-desc {
+    background: #1a1a2e;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 8px;
     color: #aaa;
-    font-size: 14px;
-    text-align: center;
-    margin-bottom: 5px;
-  }
-  .error-msg {
-    color: #ff6666;
     font-size: 13px;
-    text-align: center;
-    min-height: 20px;
+    max-width: 300px;
   }
+  .set-pwd-desc { color: #aaa; font-size: 13px; text-align: center; }
+  .error-msg { color: #ff6666; font-size: 13px; text-align: center; }
 
+  /* ==================== START SCREEN ==================== */
   #startScreen {
     position: absolute;
     inset: 0;
-    background: #1a1a1a;
     display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
-    color: #fff;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10,10,20,0.97);
+    z-index: 40;
   }
   #startScreen h1 {
-    font-size: 52px;
-    color: #ffd700;
-    text-shadow: 0 0 30px rgba(255,215,0,0.4);
-    margin-bottom: 8px;
+    color: #ffd700; font-size: 36px;
+    text-shadow: 0 0 20px rgba(255,215,0,0.2);
   }
-  #startScreen .sub { font-size: 16px; color: #aaa; margin-bottom: 30px; }
-  /* User info */
+  #startScreen .sub { color: #888; font-size: 16px; margin-bottom: 20px; }
   .user-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 5px 0;
-  }
-  #usernameDisplay {
-    color: #8aa84a;
-    font-size: 14px;
-    font-weight: bold;
-  }
-  #logoutBtn {
-    padding: 4px 12px;
-    font-size: 12px;
-    font-family: inherit;
-    background: transparent;
-    color: #888;
-    border: 1px solid #555;
-    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 14px; color: #aaa;
+    display: flex; align-items: center; gap: 8px;
     cursor: pointer;
   }
-  #logoutBtn:hover {
-    color: #fff;
-    border-color: #aaa;
-  }
+  .user-info:hover { color: #ffd700; }
+  .start-rank { font-size: 13px; color: #888; margin-bottom: 16px; }
   #startScreen .controls {
-    background: rgba(255,255,255,0.05);
-    padding: 20px 32px;
+    background: #16162a;
+    border: 1px solid #333;
     border-radius: 8px;
-    text-align: center;
-    line-height: 1.8;
-    font-size: 14px;
+    padding: 14px 20px;
+    margin: 10px 0;
     color: #ccc;
+    font-size: 12px;
+    line-height: 1.8;
+    max-width: 500px;
   }
   #startScreen .controls kbd {
-    background: #333;
-    border: 1px solid #555;
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-family: inherit;
-    color: #fff;
+    background: #222; color: #ffd700; padding: 1px 6px;
+    border-radius: 3px; border: 1px solid #555;
+    font-family: inherit; font-size: 11px;
   }
-  .start-bgm-row {
-    margin-top: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-size: 15px;
-    color: #aaa;
-  }
-  .start-bgm-btn {
-    padding: 4px 16px;
-    font-size: 14px;
-    font-family: inherit;
-    background: #3a3a2a;
-    color: #888;
-    border: 1px solid #555;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .start-bgm-btn:hover { border-color: #aaa; color: #fff; }
-  .start-bgm-btn.on { background: #3a5a2a; color: #8aa84a; border-color: #8aa84a; }
-  .mode-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin-top: 14px;
-  }
-  .mode-btn {
-    padding: 8px 22px;
-    font-size: 15px;
-    font-family: inherit;
-    background: #3a3a2a;
-    color: #aaa;
-    border: 1px solid #555;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .mode-btn:hover { border-color: #aaa; color: #fff; }
-  .mode-btn.active { background: #556b2f; color: #ffd700; border-color: #ffd700; }
-  .mode-btn.train { background: #2a3a4a; }
-  .mode-btn.train.active { background: #2a5a7a; color: #88ddff; border-color: #88ddff; }
-.ai-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 10px;
-}
-.ai-btn {
-  padding: 6px 12px;
-  font-size: 13px;
-  font-family: inherit;
-  background: #3a2a2a;
-  color: #aaa;
-  border: 1px solid #555;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.2s;
-  min-width: 50px;
-}
-.ai-btn:hover { border-color: #aaa; color: #fff; }
-.ai-btn.active { background: #4a3a5a; color: #d4aaff; border-color: #d4aaff; }
-.ai-btn.active#aiTeammateLow { background: #5a3a2a; color: #ffaa88; border-color: #ff8866; }
-.ai-btn.active#aiTeammateMid { background: #4a3a5a; color: #d4aaff; border-color: #aa88ff; }
-.ai-btn.active#aiTeammateHigh { background: #3a5a3a; color: #88ffaa; border-color: #66ff88; }
-  #startScreen { z-index: 30; }
-  /* Hide game UI elements when overlays are active */
-  #startScreen ~ .sound-toggle,
-  #startScreen ~ .bgm-toggle,
-  #startScreen ~ .shop-btn,
-  #startScreen ~ .weapon-info,
-  #startScreen ~ #trainStats,
-  #startScreen ~ .touch-zoom,
-  #startScreen ~ #ui,
-  #startScreen ~ #touchZoomBtn { display: none !important; }
-  /* Also hide UI elements during login, register, and username screens */
-  #loginScreen ~ .sound-toggle,
-  #loginScreen ~ .bgm-toggle,
-  #loginScreen ~ .shop-btn,
-  #loginScreen ~ .weapon-info,
-  #loginScreen ~ #trainStats,
-  #loginScreen ~ .touch-zoom,
-  #loginScreen ~ #ui,
-  #loginScreen ~ #touchZoomBtn { display: none !important; }
-  #setPasswordScreen ~ .sound-toggle,
-  #setPasswordScreen ~ .bgm-toggle,
-  #setPasswordScreen ~ .shop-btn,
-  #setPasswordScreen ~ .weapon-info,
-  #setPasswordScreen ~ #trainStats,
-  #setPasswordScreen ~ .touch-zoom,
-  #setPasswordScreen ~ #ui,
-  #setPasswordScreen ~ #touchZoomBtn { display: none !important; }
-  #usernameScreen ~ .sound-toggle,
-  #usernameScreen ~ .bgm-toggle,
-  #usernameScreen ~ .shop-btn,
-  #usernameScreen ~ .weapon-info,
-  #usernameScreen ~ #trainStats,
-  #usernameScreen ~ .touch-zoom,
-  #usernameScreen ~ #ui,
-  #usernameScreen ~ #touchZoomBtn { display: none !important; }
-  #trainStats {
-    display: none;
-    position: fixed;
-    top: 44px; right: 16px;
-    color: #88ddff;
-    font-size: 13px;
-    text-align: right;
-    pointer-events: none;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-    line-height: 1.6;
-  }
-  #difficultySetting {
-    margin-top: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-size: 15px;
-    color: #ddd;
-  }
-  #difficultySetting input {
-    width: 60px;
-    padding: 6px 10px;
-    font-size: 16px;
-    font-family: inherit;
-    text-align: center;
-    background: #2a2a1a;
-    color: #ffd700;
-    border: 2px solid #5a5a3a;
-    border-radius: 4px;
-    outline: none;
-  }
-  #difficultySetting input:focus { border-color: #ffd700; }
-  #difficultySetting .preset {
-    padding: 4px 12px;
-    font-size: 13px;
-    font-family: inherit;
-    background: #3a3a2a;
-    color: #ccc;
-    border: 1px solid #5a5a3a;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  #difficultySetting .preset:hover { background: #5a5a3a; border-color: #8a8a4a; }
-  #difficultySetting .preset.active { background: #556b2f; border-color: #8aa84a; color: #fff; }
-  /* Level Selector */
-  #levelSelector {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 12px 0;
-    padding: 12px;
-    background: rgba(0,0,0,0.3);
-    border-radius: 8px;
-    border: 1px solid #444;
-  }
-  #levelSelector span {
-    color: #888;
-    font-size: 13px;
-  }
-  #levelGrid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-  }
+  #levelSelector { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+  #levelSelector span { color: #888; font-size: 13px; margin-right: 4px; }
   .level-btn {
-    padding: 8px 4px;
-    font-size: 12px;
-    font-family: inherit;
-    background: #3a3a3a;
-    color: #888;
-    border: 2px solid #555;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .level-btn:hover:not(:disabled) {
-    background: #4a4a4a;
-    border-color: #777;
+    width: 36px; height: 36px; border-radius: 6px;
+    background: #222; border: 1px solid #444; color: #666;
+    font-size: 14px; cursor: not-allowed; font-family: inherit;
   }
   .level-btn.unlocked {
-    background: #4a5a3a;
-    color: #ccc;
-    border-color: #6a7a4a;
-  }
-  .level-btn.active {
-    background: #556b2f;
-    color: #fff;
-    border-color: #8aa84a;
-    box-shadow: 0 0 10px rgba(138,168,74,0.5);
-  }
-  .level-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-  #levelInfo {
-    color: #ffd700;
-    font-size: 12px;
-    text-align: center;
-    margin-top: 4px;
-  }
-  #startScreen .start-btn {
-    margin-top: 24px;
-    padding: 14px 48px;
-    font-size: 22px;
-    font-family: inherit;
-    background: #556b2f;
-    color: #fff;
-    border: 2px solid #8aa84a;
-    border-radius: 6px;
+    background: #1a2a1a; border-color: #556b2f; color: #8aa84a;
     cursor: pointer;
-    transition: all 0.2s;
-    animation: pulse 1.5s ease-in-out infinite;
   }
-  #startScreen .start-btn:hover { background: #6b8e3a; transform: scale(1.05); animation: none; }
-  @keyframes pulse { 0%,100% { box-shadow: 0 0 10px rgba(138,168,74,0.3); } 50% { box-shadow: 0 0 30px rgba(138,168,74,0.7); } }
-  #waveInfo {
+  .level-btn.active { background: #556b2f; color: #fff; border-color: #8aa84a; }
+  .level-btn.unlocked:hover { background: #2a3a2a; }
+  #levelInfo { color: #888; font-size: 12px; margin-top: 4px; width: 100%; }
+  #difficultySetting { display: flex; align-items: center; gap: 6px; margin: 4px 0; flex-wrap: wrap; }
+  #difficultySetting span { color: #888; font-size: 13px; }
+  #difficultySetting input { width: 50px; padding: 2px 6px; background: #222; border: 1px solid #444; color: #fff; border-radius: 4px; font-size: 14px; font-family: inherit; text-align: center; }
+  .preset { padding: 3px 10px; background: #222; border: 1px solid #444; color: #888; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: inherit; }
+  .preset.active { background: #556b2f; border-color: #556b2f; color: #fff; }
+  .preset:hover { border-color: #888; }
+  .mode-row { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
+  .mode-btn {
+    padding: 5px 14px; background: #222; border: 1px solid #444;
+    color: #888; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: inherit;
+  }
+  .mode-btn.active { background: #556b2f; border-color: #556b2f; color: #fff; }
+  .mode-btn.train { background: #222; }
+  .mode-btn.train.active { background: #3a5a6a; border-color: #3a5a6a; color: #fff; }
+  .ai-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+  .ai-btn { padding: 3px 10px; background: #222; border: 1px solid #444; color: #888; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: inherit; }
+  .ai-btn.active { background: #3a5a6a; border-color: #3a5a6a; color: #fff; }
+  #startBtn {
+    padding: 10px 30px; font-size: 18px;
+    background: #556b2f; color: #fff;
+    border: none; border-radius: 8px;
+    cursor: pointer; font-family: inherit;
+    margin-top: 16px;
+  }
+  #startBtn:hover { background: #6b8e3a; }
+  .start-bgm-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 10px; color: #888; font-size: 12px;
+  }
+  .start-bgm-btn {
+    padding: 3px 12px; background: #222; border: 1px solid #444;
+    color: #888; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: inherit;
+  }
+  .start-bgm-btn.on { background: #3a5a2a; border-color: #556b2f; color: #8aa84a; }
+
+  /* ==================== GAME OVER / VICTORY ==================== */
+  #gameOver, #victoryScreen {
     position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10,10,20,0.95);
+    z-index: 30;
+  }
+  #gameOver h1 { color: #ff4444; font-size: 42px; margin-bottom: 10px; }
+  #victoryScreen h1 { color: #ffd700; font-size: 42px; margin-bottom: 10px; }
+  #gameOver p, #victoryScreen p { color: #ccc; font-size: 16px; margin: 4px 0; }
+  .end-btn {
+    padding: 10px 28px; font-size: 16px; margin-top: 16px;
+    background: #556b2f; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-family: inherit;
+  }
+  .end-btn:hover { background: #6b8e3a; }
+  .menu-btn {
+    padding: 8px 20px; font-size: 13px; margin-top: 8px;
+    background: #333; color: #888; border: 1px solid #555; border-radius: 6px; cursor: pointer; font-family: inherit;
+  }
+  .menu-btn:hover { background: #444; color: #fff; }
+
+  /* ==================== IN-GAME BUTTONS ==================== */
+  .train-exit-btn {
+    position: fixed; top: 44px; right: 16px;
+    color: #888; font-size: 13px; cursor: pointer;
+    background: rgba(30,30,40,0.8); border: 1px solid #555;
+    border-radius: 4px; padding: 2px 8px; font-family: inherit;
+    z-index: 10;
+  }
+  .train-exit-btn:hover { border-color: #ff4444; color: #ff4444; }
+  .shop-btn {
+    position: fixed;
+    top: 44px; left: 16px;
     color: #ffd700;
-    font-size: 36px;
-    font-weight: bold;
-    text-shadow: 0 0 20px rgba(255,215,0,0.5);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.5s;
-  }
-  .weapon-info {
-    position: fixed;
-    bottom: 10px; left: 16px;
-    color: #aaa;
-    font-size: 13px;
-    pointer-events: none;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-  }
-  .sound-toggle {
-    position: fixed;
-    bottom: 56px; right: 16px;
-    color: #888;
     font-size: 13px;
     pointer-events: auto;
     cursor: pointer;
-    background: none;
-    border: 1px solid #555;
+    background: rgba(80,60,20,0.5);
+    border: 1px solid #ffd700;
     border-radius: 4px;
-    padding: 2px 8px;
+    padding: 3px 10px;
     font-family: inherit;
-    color: #aaa;
+    z-index: 10;
   }
+  .shop-btn:hover { background: rgba(120,90,30,0.7); color: #fff; }
+  .sound-toggle, .bgm-toggle {
+    position: fixed;
+    top: 44px;
+    color: #aaa; font-size: 13px; cursor: pointer;
+    background: rgba(30,30,40,0.8); border: 1px solid #555;
+    border-radius: 4px; padding: 2px 8px; font-family: inherit;
+    z-index: 10;
+  }
+  .sound-toggle { right: 16px; }
   .sound-toggle:hover { border-color: #aaa; color: #fff; }
-  .bgm-toggle {
-    position: fixed;
-    bottom: 80px; right: 16px;
-    color: #888;
-    font-size: 13px;
-    pointer-events: auto;
-    cursor: pointer;
-    background: none;
-    border: 1px solid #555;
-    border-radius: 4px;
-    padding: 2px 8px;
-    font-family: inherit;
-  }
+  .bgm-toggle { right: 76px; }
   .bgm-toggle:hover { border-color: #aaa; color: #fff; }
   .bgm-toggle.on { color: #8aa84a; border-color: #8aa84a; }
   /* Feedback Button */
@@ -643,35 +504,15 @@
     padding: 0 4px;
   }
   .train-exit-btn {
-    position: absolute;
-    bottom: 58px; right: 16px;
-    color: #88ddff;
-    font-size: 13px;
-    pointer-events: auto;
-    cursor: pointer;
-    background: rgba(40,60,80,0.6);
-    border: 1px solid #88ddff;
-    border-radius: 4px;
-    padding: 4px 10px;
-    font-family: inherit;
+    position: fixed; top: 44px; right: 16px;
+    color: #888; font-size: 13px; cursor: pointer;
+    background: rgba(30,30,40,0.8); border: 1px solid #555;
+    border-radius: 4px; padding: 2px 8px; font-family: inherit;
     z-index: 10;
   }
-  .train-exit-btn:hover { background: rgba(60,100,140,0.8); color: #fff; }
-  .shop-btn {
-    position: fixed;
-    top: 44px; left: 16px;
-    color: #ffd700;
-    font-size: 13px;
-    pointer-events: auto;
-    cursor: pointer;
-    background: rgba(80,60,20,0.5);
-    border: 1px solid #ffd700;
-    border-radius: 4px;
-    padding: 3px 10px;
-    font-family: inherit;
-    z-index: 10;
-  }
-  .shop-btn:hover { background: rgba(120,90,30,0.7); color: #fff; }
+  .train-exit-btn:hover { border-color: #ff4444; color: #ff4444; }
+
+  /* ==================== SHOP ==================== */
   #shopOverlay {
     display: none;
     position: fixed;
@@ -726,20 +567,127 @@
   .shop-close {
     display: block;
     margin: 16px auto 0;
-    padding: 8px 28px;
-    font-size: 15px;
+    padding: 8px 24px;
+    font-size: 14px;
     font-family: inherit;
-    background: #3a3a2a;
-    color: #aaa;
-    border: 1px solid #555;
-    border-radius: 4px;
+    background: #444;
+    color: #ccc;
+    border: 1px solid #666;
+    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s;
   }
   .shop-close:hover { border-color: #aaa; color: #fff; }
 
-  /* Touch controls - simple zoom toggle */
-  .touch-zoom {
+  /* ==================== ADMIN PANEL ==================== */
+  #adminPanel {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    justify-content: center;
+    align-items: center;
+    z-index: 150;
+  }
+  #adminPanel.open { display: flex; }
+  .admin-panel {
+    background: #1a1a2e;
+    border: 2px solid #ffd700;
+    border-radius: 12px;
+    padding: 20px 24px;
+    width: 90%;
+    max-width: 520px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 40px rgba(255,215,0,0.1);
+  }
+  .admin-panel h2 {
+    color: #ffd700;
+    font-size: 22px;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .admin-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .admin-tab {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #2a2a3a;
+    color: #888;
+    border: 1px solid #444;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .admin-tab.active {
+    background: #3a4a2a;
+    border-color: #8aa84a;
+    color: #8aa84a;
+  }
+  .admin-tab-content {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 200px;
+    max-height: 400px;
+  }
+  .admin-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .admin-feedback-item, .admin-user-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #ccc;
+    line-height: 1.5;
+  }
+  .admin-feedback-item .fb-user { color: #8aa84a; font-weight: bold; }
+  .admin-feedback-item .fb-time { color: #666; font-size: 11px; }
+  .admin-feedback-item .fb-text { color: #fff; margin-top: 4px; }
+  .admin-user-item .u-name { color: #ffd700; font-weight: bold; }
+  .admin-user-item .u-stats { color: #aaa; font-size: 11px; }
+  .admin-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .admin-actions button {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid #555;
+    background: #333;
+    color: #ccc;
+  }
+  .admin-actions button:hover { background: #444; color: #fff; }
+  #adminClearFeedback { border-color: #cc4444; color: #cc6666; }
+  #adminClearFeedback:hover { background: #442222; color: #ff6666; }
+  .admin-close {
+    display: block;
+    margin: 14px auto 0;
+    padding: 8px 24px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #444;
+    color: #ccc;
+    border: 1px solid #666;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .admin-close:hover { border-color: #aaa; color: #fff; }
+
+  /* ==================== TOUCH CONTROLS ==================== */
+  #touchZoomBtn, .touch-zoom {
     display: none;
     position: fixed;
     z-index: 20;
@@ -765,7 +713,6 @@
     #touchControls { display: flex; }
   }
 
-  /* Touch controls - directional + fire buttons */
   #touchControls {
     display: none;
     position: fixed;
@@ -814,6 +761,41 @@
     margin-bottom: 10px;
   }
   #touchFire:active { background: rgba(255,60,60,0.6); transform: scale(0.92); }
+
+  /* ==================== MEDIA QUERIES ==================== */
+  #startScreen ~ .sound-toggle,
+  #startScreen ~ .bgm-toggle,
+  #startScreen ~ .shop-btn,
+  #startScreen ~ .weapon-info,
+  #startScreen ~ #trainStats,
+  #startScreen ~ #trainExitBtn,
+  #startScreen ~ .touch-zoom,
+  #startScreen ~ #touchZoomBtn { display: none !important; }
+
+  #loginScreen ~ .sound-toggle,
+  #loginScreen ~ .bgm-toggle,
+  #loginScreen ~ .shop-btn,
+  #loginScreen ~ .train-exit-btn,
+  #loginScreen ~ #trainExitBtn,
+  #loginScreen ~ .touch-zoom,
+  #loginScreen ~ #touchZoomBtn { display: none !important; }
+
+  #setPasswordScreen ~ .sound-toggle,
+  #setPasswordScreen ~ .bgm-toggle,
+  #setPasswordScreen ~ .shop-btn,
+  #setPasswordScreen ~ .train-exit-btn,
+  #setPasswordScreen ~ #trainExitBtn,
+  #setPasswordScreen ~ .touch-zoom,
+  #setPasswordScreen ~ #touchZoomBtn { display: none !important; }
+
+  #usernameScreen ~ .sound-toggle,
+  #usernameScreen ~ .bgm-toggle,
+  #usernameScreen ~ .shop-btn,
+  #usernameScreen ~ .train-exit-btn,
+  #usernameScreen ~ #trainExitBtn,
+  #usernameScreen ~ .touch-zoom,
+  #usernameScreen ~ #touchZoomBtn { display: none !important; }
+
   @media (max-width: 920px) {
     body { align-items: flex-start; padding-top: 0; }
     #gameContainer { border: none; border-radius: 0; }
@@ -824,6 +806,7 @@
     #startScreen .controls { padding: 10px 14px; font-size: 11px; }
     .touch-zoom { width: 40px; height: 40px; font-size: 16px; bottom: 12px; right: 12px; }
     .shop-panel { min-width: 280px; padding: 14px 16px; }
+    .admin-panel { max-width: 95%; padding: 14px 16px; }
   }
   @media (max-width: 500px) {
     #startScreen h1 { font-size: 20px; }
@@ -842,4 +825,7 @@
     #touchLeft, #touchRight { width: 50px; height: 50px; font-size: 20px; }
     #touchFire { width: 56px; height: 56px; font-size: 16px; }
     #touchZoom { width: 40px; height: 40px; font-size: 14px; right: 80px; bottom: 14px; }
+    .admin-panel { max-width: 98%; padding: 10px 12px; }
+    .admin-panel h2 { font-size: 18px; }
+    .admin-feedback-item, .admin-user-item { font-size: 11px; padding: 8px; }
   }

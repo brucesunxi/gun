@@ -168,6 +168,29 @@
       <button class="shop-close" id="shopCloseBtn">关闭商店</button>
     </div>
   </div>
+  <div id="adminPanel" style="display:none;">
+    <div class="admin-panel">
+      <h2>⚙️ 管理面板</h2>
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-tab="feedback">💬 反馈</button>
+        <button class="admin-tab" data-tab="users">👥 用户</button>
+      </div>
+      <div id="adminFeedbackTab" class="admin-tab-content">
+        <div class="admin-list" id="adminFeedbackList"></div>
+        <div class="admin-actions">
+          <button id="adminFeedbackRefresh">🔄 刷新</button>
+          <button id="adminClearFeedback">🗑️ 清空</button>
+        </div>
+      </div>
+      <div id="adminUsersTab" class="admin-tab-content" style="display:none;">
+        <div class="admin-list" id="adminUsersList"></div>
+        <div class="admin-actions">
+          <button id="adminUsersRefresh">🔄 刷新</button>
+        </div>
+      </div>
+      <button class="admin-close" id="adminPanelClose">关闭</button>
+    </div>
+  </div>
   <button class="feedback-btn" id="feedbackBtn" onclick="showOverlay()" style="position:fixed;bottom:104px;right:16px;z-index:99999;pointer-events:auto;color:#aaa;font-size:13px;cursor:pointer;background:rgba(30,30,40,0.9);border:1px solid #666;border-radius:6px;padding:5px 12px;font-family:inherit;">💬 反馈</button>
 <script src="script.js?v=1024"></script>
 <script>

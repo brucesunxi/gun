@@ -1446,35 +1446,6 @@ function checkNewFeedback() {
   }
 }
 
-// 点击通知查看反馈
-document.getElementById('devNotification').addEventListener('click', () => {
-  if (!isAdmin) {
-    alert('只有管理员可以查看反馈');
-    return;
-  }
-  const feedbackList = getAllFeedback();
-  if (feedbackList.length === 0) {
-    alert('暂无反馈');
-    return;
-  }
-
-  let msg = `共 ${feedbackList.length} 条反馈（跨设备 ${feedbackKvAvailable ? '已同步' : '仅本机'}）：\n\n`;
-  feedbackList.slice(-10).reverse().forEach((f, i) => {
-    const time = new Date(f.time).toLocaleString('zh-CN');
-    msg += `[${time}] 用户: ${f.username}\n`;
-    msg += `关卡: ${f.level} 得分: ${f.score}\n`;
-    msg += `反馈: ${f.text}\n\n`;
-  });
-
-  alert(msg);
-  markFeedbackAsRead();
-  document.getElementById('devNotification').style.display = 'none';
-  // 更新用户名显示
-  const usernameDisplay = document.getElementById('usernameDisplay');
-  if (usernameDisplay && currentUser === ADMIN_USERNAME) {
-    usernameDisplay.textContent = '👤 管理 (管理员)';
-  }
-});
 
 // 页面加载时检查新反馈
 setTimeout(() => {
@@ -1521,6 +1492,128 @@ window.showAllUsers = function() {
   });
   return `共 ${Object.keys(allData).length} 位用户`;
 };
+
+// ==================== 管理面板 ====================
+function showAdminPanel() {
+  const panel = document.getElementById('adminPanel');
+  if (!panel) return;
+  panel.classList.add('open');
+  panel.style.display = 'flex';
+  renderAdminFeedback();
+}
+
+function hideAdminPanel() {
+  const panel = document.getElementById('adminPanel');
+  if (!panel) return;
+  panel.classList.remove('open');
+  panel.style.display = 'none';
+}
+
+function renderAdminFeedback() {
+  const list = document.getElementById('adminFeedbackList');
+  if (!list) return;
+  const feedbackList = getAllFeedback();
+  if (feedbackList.length === 0) {
+    list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;font-size:13px;">暂无反馈</div>';
+    return;
+  }
+  const syncStatus = feedbackKvAvailable ? '🌐 跨设备已同步' : '📱 仅本机';
+  let html = `<div style="color:#888;font-size:11px;margin-bottom:8px;">共 ${feedbackList.length} 条反馈（${syncStatus}）</div>`;
+  feedbackList.slice().reverse().forEach(f => {
+    const time = new Date(f.time).toLocaleString('zh-CN');
+    html += `<div class="admin-feedback-item">
+      <span class="fb-user">${escHtml(f.username)}</span>
+      <span class="fb-time">${time}</span>
+      <div class="fb-text">${escHtml(f.text)}</div>
+      <div style="color:#666;font-size:11px;">关卡 ${f.level} · 得分 ${f.score}</div>
+    </div>`;
+  });
+  list.innerHTML = html;
+  markFeedbackAsRead();
+  checkNewFeedback();
+}
+
+function renderAdminUsers() {
+  const list = document.getElementById('adminUsersList');
+  if (!list) return;
+  const allData = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
+  const users = Object.values(allData);
+  if (users.length === 0) {
+    list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;font-size:13px;">暂无用户数据</div>';
+    return;
+  }
+  let html = `<div style="color:#888;font-size:11px;margin-bottom:8px;">共 ${users.length} 位用户</div>`;
+  users.sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+  users.forEach(u => {
+    const winRate = u.gamesPlayed > 0 ? Math.round(u.gamesWon / u.gamesPlayed * 100) : 0;
+    html += `<div class="admin-user-item">
+      <span class="u-name">${escHtml(u.username || '未知')}</span>
+      <div class="u-stats">🏆 总分 ${u.totalScore || 0} · 最高 ${u.highScore || 0} · 🎮 ${u.gamesPlayed || 0}场（${winRate}%胜率）</div>
+      <div class="u-stats">📈 ${u.rank || 'bronze'} · 解锁至第${u.unlockedLevel || 1}关</div>
+    </div>`;
+  });
+  list.innerHTML = html;
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// 管理面板事件绑定
+// 管理面板初始化（脚本在 body 底部加载，DOM 已就绪）
+;(function() {
+  // 管理员用户名可点击打开管理面板
+  const usernameDisplay = document.getElementById('usernameDisplay');
+  if (usernameDisplay) {
+    usernameDisplay.addEventListener('click', () => {
+      if (isAdmin) showAdminPanel();
+    });
+    usernameDisplay.style.cursor = 'pointer';
+  }
+
+  // 面板标签切换
+  document.querySelectorAll('.admin-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
+      const target = tab.dataset.tab;
+      const content = document.getElementById('admin' + target.charAt(0).toUpperCase() + target.slice(1) + 'Tab');
+      if (content) {
+        content.style.display = '';
+        if (target === 'feedback') renderAdminFeedback();
+        else if (target === 'users') renderAdminUsers();
+      }
+    });
+  });
+
+  document.getElementById('adminPanelClose').addEventListener('click', hideAdminPanel);
+  document.getElementById('adminFeedbackRefresh').addEventListener('click', renderAdminFeedback);
+  document.getElementById('adminUsersRefresh').addEventListener('click', renderAdminUsers);
+  document.getElementById('adminClearFeedback').addEventListener('click', () => {
+    if (confirm('确定清空所有反馈？')) {
+      clearAllFeedback();
+      renderAdminFeedback();
+    }
+  });
+});
+
+
+// 更新 devNotification 点击行为：打开管理面板
+document.getElementById('devNotification').addEventListener('click', () => {
+  if (!isAdmin) {
+    alert('只有管理员可以查看反馈');
+    return;
+  }
+  showAdminPanel();
+});
+
+// 点击面板外部关闭
+document.getElementById('adminPanel').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) hideAdminPanel();
+});
 
 // 查看当前用户数据
 window.showMyData = function() {
