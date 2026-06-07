@@ -468,7 +468,7 @@
     color: #888; font-size: 13px; cursor: pointer;
     background: rgba(30,30,40,0.8); border: 1px solid #555;
     border-radius: 4px; padding: 2px 8px; font-family: inherit;
-    z-index: 10;
+    z-index: 100;
   }
   .train-exit-btn:hover { border-color: #ff4444; color: #ff4444; }
   .shop-btn {
