@@ -629,9 +629,10 @@ function drawAITeammateHpBar(){
 
 function resetGame() {
   showFeedbackBtn();
+  // 先确定训练模式，再显示 UI
+  game.trainingMode=document.getElementById('modeTrainBtn').classList.contains('active');
   showGameUI();
   const cfg=levelSystem.getCurrent();
-  game.trainingMode=document.getElementById('modeTrainBtn').classList.contains('active');
   game.aiTeammateEnabled=document.getElementById('aiTeammateLow').classList.contains('active')?'low':(document.getElementById('aiTeammateHigh').classList.contains('active')?'high':(document.getElementById('aiTeammateMid').classList.contains('active')?'mid':null));
   game.totalEnemies=game.trainingMode?20:cfg.enemies;
   game.score=0;game.lives=3;game.kills=0;game.enemiesSpawned=0;game.shotsFired=0;game.hits=0;game.combo=0;game.maxCombo=0;
