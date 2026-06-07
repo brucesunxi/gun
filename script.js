@@ -1485,9 +1485,12 @@ function showGameUI(){
   const ids = ['weaponInfo', 'soundToggle', 'bgmToggle', 'shopBtn', 'touchZoomBtn'];
   ids.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = ''; });
   document.querySelectorAll('.weapon-info, .sound-toggle, .bgm-toggle, .shop-btn, .touch-zoom').forEach(el => { el.style.display = ''; });
-  // 训练场退出按钮根据模式单独处理
+  // 退出按钮在训练和战场模式都显示
   const trainExit = document.getElementById('trainExitBtn');
-  if(trainExit) trainExit.style.display = game.trainingMode ? '' : 'none';
+  if(trainExit) {
+    trainExit.style.display = '';
+    trainExit.textContent = game.trainingMode ? '🚪 退出训练' : '🚪 退出战场';
+  }
 }
 function hideGameUI(){
   const ids = ['weaponInfo', 'soundToggle', 'bgmToggle', 'shopBtn', 'touchZoomBtn', 'trainExitBtn'];
