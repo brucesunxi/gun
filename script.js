@@ -1781,13 +1781,14 @@ async function checkUserBanned(username) {
 
 function banUser(username, days) {
   if (!isAdmin) return;
-  // 本地封禁
+  // 本地封禁（如果不存在则创建基本数据）
   const allData = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
-  if (allData[username]) {
-    allData[username].banned = true;
-    allData[username].banExpiry = Date.now() + days * 24 * 60 * 60 * 1000;
-    localStorage.setItem(USERS_DATA_KEY, JSON.stringify(allData));
+  if (!allData[username]) {
+    allData[username] = { username: username, totalScore: 0, highScore: 0, gamesPlayed: 0, gamesWon: 0, unlockedLevel: 1, currentLevel: 1, rank: 'bronze', rankScore: 0 };
   }
+  allData[username].banned = true;
+  allData[username].banExpiry = Date.now() + days * 24 * 60 * 60 * 1000;
+  localStorage.setItem(USERS_DATA_KEY, JSON.stringify(allData));
   // 同步到云端
   fetch('/api/users', {
     method: 'POST',

@@ -63,11 +63,13 @@ module.exports = async (req, res) => {
         const banExpiry = banUntil || (banDays ? Date.now() + banDays * 24 * 60 * 60 * 1000 : null);
         if (available) {
           const all = await kvGet();
-          if (all[username]) {
-            all[username].banned = true;
-            all[username].banExpiry = banExpiry;
-            await kvSet(all);
+          // 如果不存在则创建基本数据
+          if (!all[username]) {
+            all[username] = { username: username, totalScore: 0, highScore: 0, gamesPlayed: 0, gamesWon: 0, unlockedLevel: 1, currentLevel: 1, rank: 'bronze', rankScore: 0 };
           }
+          all[username].banned = true;
+          all[username].banExpiry = banExpiry;
+          await kvSet(all);
         }
         return res.json({ ok: true, action: 'ban', username, banExpiry, source: available ? 'kv' : 'local' });
       }
