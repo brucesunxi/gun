@@ -937,8 +937,18 @@
     .touch-zoom { width: 40px; height: 40px; font-size: 16px; bottom: 12px; right: 12px; }
     .shop-panel { min-width: 280px; padding: 14px 16px; }
     .admin-panel { max-width: 95%; padding: 14px 16px; }
+    #startScreen { padding: 10px; }
+    .login-box { min-width: 240px; padding: 16px 20px; }
+    .feedback-panel { padding: 16px; }
+    #touchControls { bottom: 40px; }
+    .touch-dir { width: 48px; height: 48px; font-size: 18px; }
+    #touchFire { width: 56px; height: 56px; font-size: 18px; }
   }
   @media (max-width: 500px) {
+    body { align-items: flex-start; padding-top: 0; }
+    #gameContainer { border: none; border-radius: 0; }
+    #ui { font-size: 10px; padding: 2px 6px; }
+    .weapon-info { font-size: 9px; bottom: 2px; left: 4px; }
     #startScreen h1 { font-size: 20px; }
     #startScreen .sub { font-size: 12px; margin-bottom: 12px; }
     #startScreen .controls { padding: 8px 10px; font-size: 10px; }
@@ -951,11 +961,17 @@
     .shop-panel { min-width: 240px; padding: 10px 12px; }
     .shop-panel h2 { font-size: 18px; }
     .shop-item { padding: 6px 8px; font-size: 12px; }
-    #touchControls { height: 100px; }
-    #touchLeft, #touchRight { width: 50px; height: 50px; font-size: 20px; }
-    #touchFire { width: 56px; height: 56px; font-size: 16px; }
-    #touchZoom { width: 40px; height: 40px; font-size: 14px; right: 80px; bottom: 14px; }
+    #touchControls { height: 80px; bottom: 30px; }
+    #touchLeft, #touchRight { width: 44px; height: 44px; font-size: 16px; }
+    #touchFire { width: 50px; height: 50px; font-size: 16px; }
+    #touchZoom { width: 36px; height: 36px; font-size: 12px; right: 60px; bottom: 10px; }
     .admin-panel { max-width: 98%; padding: 10px 12px; }
     .admin-panel h2 { font-size: 18px; }
-    .admin-feedback-item, .admin-user-item { font-size: 11px; padding: 8px; }
+    .train-exit-btn { font-size: 11px; padding: 1px 6px; top: 68px; right: 8px; }
+    .sound-toggle { right: 8px; font-size: 11px; }
+    .bgm-toggle { right: 62px; font-size: 11px; }
+    .shop-btn { font-size: 11px; top: 44px; left: 8px; }
+    .login-box { min-width: 200px; padding: 12px 16px; }
+    #loginScreen h1 { font-size: 22px; }
+    .feedback-panel { padding: 12px; }
   }

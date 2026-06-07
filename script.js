@@ -939,23 +939,25 @@ function fitGame(){
   const cv = document.getElementById('gameCanvas');
   const c = document.getElementById('gameContainer');
   const w = window.innerWidth, h = window.innerHeight;
-  if (w > 920 && h > 670) {
-    cv.style.width=''; cv.style.height='';
-    c.style.position=''; c.style.top=''; c.style.left='';
-    c.style.transform=''; c.style.width=''; c.style.height='';
-    return;
-  }
-  // Scale canvas to fill viewport width, height may overflow
-  const scale = Math.min(w / 900, 1);
+  // 计算缩放比例，适配所有屏幕
+  const scaleX = w / 900, scaleY = h / 650;
+  const scale = Math.min(scaleX, scaleY, 1); // 不超过原始大小
   const cw = Math.round(900 * scale), ch = Math.round(650 * scale);
   cv.style.width = cw + 'px';
   cv.style.height = ch + 'px';
   c.style.width = cw + 'px';
   c.style.height = ch + 'px';
-  c.style.position = 'fixed';
-  c.style.top = '50%';
-  c.style.left = '50%';
-  c.style.transform = 'translate(-50%, -50%)';
+  if (scale < 1) {
+    c.style.position = 'fixed';
+    c.style.top = '50%';
+    c.style.left = '50%';
+    c.style.transform = 'translate(-50%, -50%)';
+  } else {
+    c.style.position = '';
+    c.style.top = '';
+    c.style.left = '';
+    c.style.transform = '';
+  }
 }
 window.addEventListener('resize',fitGame);
 window.addEventListener('orientationchange',()=>setTimeout(fitGame,300));
