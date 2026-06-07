@@ -1,5 +1,5 @@
 // 跨设备反馈 API (Vercel Serverless Function)
-// 使用 Vercel KV 存储，用户连接 KV 后自动生效
+// 使用 Vercel KV (Upstash Redis) 存储反馈数据
 
 const KV_KEY = 'feedback_data';
 
@@ -23,21 +23,25 @@ module.exports = async (req, res) => {
     });
     if (!r.ok) throw new Error(`KV GET ${r.status}`);
     const d = await r.json();
-    return d.result || [];
+    // d.result 可能是字符串（需要解析）或已经是数组
+    if (!d.result) return [];
+    if (Array.isArray(d.result)) return d.result;
+    try { return JSON.parse(d.result); } catch(e) { return []; }
   }
 
   async function kvSet(val) {
+    // Upstash REST API: body 是普通字符串，自动 JSON.stringify 会加多余引号
     await fetch(`${url}/set/${KV_KEY}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(JSON.stringify(val))
+      body: JSON.stringify(val)
     });
   }
 
   try {
     if (req.method === 'GET') {
       const data = available ? await kvGet() : [];
-      return res.json({ ok: true, data, source: available ? 'kv' : 'local' });
+      return res.json({ ok: true, data, source: 'kv' });
 
     } else if (req.method === 'POST') {
       const { text, level, score, username } = req.body || {};
