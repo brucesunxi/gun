@@ -40,6 +40,8 @@
     #victoryScreen { background: rgba(255,255,255,0.97); }
     #victoryScreen h1 { color: #b8860b; }
     .user-info { color: #333; }
+    #adminPanelBtn { background: #d4edda; border-color: #6a8a3a; color: #2d6a2d; }
+    #adminPanelBtn:hover { background: #c8ddc8; }
     .level-btn { background: #e0e0e0; color: #333; border-color: #bbb; }
     .level-btn.unlocked { background: #d4edda; border-color: #6a8a3a; color: #2d6a2d; }
     .level-btn.unlocked:hover { background: #c8ddc8; }
@@ -275,6 +277,17 @@
     cursor: pointer;
   }
   .user-info:hover { color: #ffd700; }
+  #adminPanelBtn {
+    background: #3a4a2a;
+    border: 1px solid #8aa84a;
+    color: #8aa84a;
+    padding: 2px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+  }
+  #adminPanelBtn:hover { background: #4a5a3a; color: #aaba7a; }
   .start-rank { font-size: 13px; color: #888; margin-bottom: 16px; }
   #startScreen .controls {
     background: #16162a;

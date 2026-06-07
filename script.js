@@ -1006,6 +1006,9 @@ function updateUsernameDisplay() {
   if (usernameDisplay) {
     usernameDisplay.textContent = currentUser ? `👤 ${currentUser}${isAdmin?' (管理员)':''}` : '👤 未登录';
   }
+  // 管理员后台按钮
+  const adminBtn = document.getElementById('adminPanelBtn');
+  if (adminBtn) adminBtn.style.display = isAdmin ? '' : 'none';
 }
 
 // ==================== 关卡系统 ====================
@@ -1702,6 +1705,12 @@ function escHtml(s) {
       if (isAdmin) showAdminPanel();
     });
     usernameDisplay.style.cursor = 'pointer';
+  }
+
+  // 管理员后台按钮
+  const adminBtn = document.getElementById('adminPanelBtn');
+  if (adminBtn) {
+    adminBtn.addEventListener('click', showAdminPanel);
   }
 
   // 面板标签切换
