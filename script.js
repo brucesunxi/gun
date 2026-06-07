@@ -1667,7 +1667,8 @@ function escHtml(s) {
       clearAllFeedback();
       renderAdminFeedback();
     }
-  })();
+  });
+})();
 
 // 更新 devNotification 点击行为：打开管理面板
 document.getElementById('devNotification').addEventListener('click', () => {
