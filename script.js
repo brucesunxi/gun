@@ -1239,7 +1239,7 @@ const FEEDBACK_KEY = 'battle_shooter_feedback';
 const FEEDBACK_READ_KEY = 'battle_shooter_feedback_read';
 const FEEDBACK_API = '/api/feedback';
 
-// 是否已配置跨设备同步（KV）
+// 是否已配置跨设备同步（GitHub Issues）
 let feedbackKvAvailable = false;
 
 // 尝试从 API 获取反馈（跨设备），失败则用 localStorage
@@ -1248,7 +1248,7 @@ async function fetchRemoteFeedback() {
     const res = await fetch(FEEDBACK_API);
     if (!res.ok) throw new Error('API error');
     const json = await res.json();
-    if (json.ok && json.source === 'kv') {
+    if (json.ok && (json.source === 'kv' || json.source === 'github')) {
       feedbackKvAvailable = true;
       const remote = json.data || [];
       // 合并远程数据到本地
