@@ -652,7 +652,7 @@ function resetGame() {
   // 每关只重置武器购买状态，其他升级保留
   shopItems.forEach(i=>{if(i.id==='rifle'||i.id==='shotgun'||i.id==='sniper')i.bought=false;});
   document.getElementById('trainStats').style.display=game.trainingMode?'block':'none';
-  document.getElementById('trainExitBtn').style.display=game.trainingMode?'':'none';
+  document.getElementById('trainExitBtn').style.display=game.trainingMode?'block':'none';
   document.getElementById('shopBtn').style.display=game.trainingMode?'none':'';
   updateUI();weaponInfo.textContent='\u{1F52B} 手枪 (18伤害)';
   if(game.trainingMode){waveInfo.textContent='\u{1F3AF} 训练场 — 射击移动靶练习！';waveInfo.style.opacity='1';setTimeout(()=>{waveInfo.style.opacity='0';},2500);}
@@ -1420,9 +1420,12 @@ function clearAllFeedback() {
 
 // 显示/隐藏所有游戏UI元素
 function showGameUI(){
-  const ids = ['weaponInfo', 'soundToggle', 'bgmToggle', 'shopBtn', 'touchZoomBtn', 'trainExitBtn'];
+  const ids = ['weaponInfo', 'soundToggle', 'bgmToggle', 'shopBtn', 'touchZoomBtn'];
   ids.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = ''; });
   document.querySelectorAll('.weapon-info, .sound-toggle, .bgm-toggle, .shop-btn, .touch-zoom').forEach(el => { el.style.display = ''; });
+  // 训练场退出按钮根据模式单独处理
+  const trainExit = document.getElementById('trainExitBtn');
+  if(trainExit) trainExit.style.display = game.trainingMode ? '' : 'none';
 }
 function hideGameUI(){
   const ids = ['weaponInfo', 'soundToggle', 'bgmToggle', 'shopBtn', 'touchZoomBtn', 'trainExitBtn'];
