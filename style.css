@@ -904,24 +904,24 @@
   #loginScreen ~ .sound-toggle,
   #loginScreen ~ .bgm-toggle,
   #loginScreen ~ .shop-btn,
-  #loginScreen ~ .train-exit-btn,
-  #loginScreen ~ #trainExitBtn,
+  /* #loginScreen ~ .train-exit-btn, */ /* 训练场退出按钮由JS控制 */
+  /* #loginScreen ~ #trainExitBtn, */
   #loginScreen ~ .touch-zoom,
   #loginScreen ~ #touchZoomBtn { display: none !important; }
 
   #setPasswordScreen ~ .sound-toggle,
   #setPasswordScreen ~ .bgm-toggle,
   #setPasswordScreen ~ .shop-btn,
-  #setPasswordScreen ~ .train-exit-btn,
-  #setPasswordScreen ~ #trainExitBtn,
+  /* #setPasswordScreen ~ .train-exit-btn, */
+  /* #setPasswordScreen ~ #trainExitBtn, */
   #setPasswordScreen ~ .touch-zoom,
   #setPasswordScreen ~ #touchZoomBtn { display: none !important; }
 
   #usernameScreen ~ .sound-toggle,
   #usernameScreen ~ .bgm-toggle,
   #usernameScreen ~ .shop-btn,
-  #usernameScreen ~ .train-exit-btn,
-  #usernameScreen ~ #trainExitBtn,
+  /* #usernameScreen ~ .train-exit-btn, */
+  /* #usernameScreen ~ #trainExitBtn, */
   #usernameScreen ~ .touch-zoom,
   #usernameScreen ~ #touchZoomBtn { display: none !important; }
 
