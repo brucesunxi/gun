@@ -1446,8 +1446,9 @@ document.getElementById('feedbackSubmit').addEventListener('click', () => {
     status.textContent = '✅ 感谢您的反馈！';
     status.style.cssText = 'display:block;color:#8aa84a;text-align:center;margin-top:8px;font-size:14px;';
   }
-  // 如果管理员在线，立即检查新反馈
+  // 如果管理员在线，立即检查新反馈；非管理员也检查（同设备切换用户后可见）
   if (isAdmin) setTimeout(checkNewFeedback, 100);
+  else setTimeout(() => { if (typeof checkNewFeedback === 'function') checkNewFeedback(); }, 200);
 });
 
 // 通知关闭按钮 - 阻止事件冒泡，避免触发父级点击
@@ -1674,6 +1675,13 @@ document.getElementById('devNotification').addEventListener('click', () => {
 // 点击面板外部关闭
 document.getElementById('adminPanel').addEventListener('click', (e) => {
   if (e.target === e.currentTarget) hideAdminPanel();
+});
+// ESC 键关闭管理面板
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const panel = document.getElementById('adminPanel');
+    if (panel && panel.classList.contains('open')) hideAdminPanel();
+  }
 });
 
 // 查看当前用户数据

@@ -4,7 +4,7 @@
 const GH_REPO = 'brucesunxi/gun';
 const GH_LABEL = 'feedback';
 
-async function ghApi(path, method = 'GET', body = null) {
+async function ghApi(path, method = 'GET', body = null, retries = 2) {
   const token = process.env.GH_TOKEN;
   if (!token) throw new Error('GH_TOKEN not configured');
   const opts = {
@@ -12,18 +12,30 @@ async function ghApi(path, method = 'GET', body = null) {
     headers: {
       Authorization: `token ${token}`,
       'Content-Type': 'application/json',
-      'User-Agent': 'gun-feedback'
+      'User-Agent': 'gun-feedback',
+      'Accept': 'application/vnd.github.v3+json'
     }
   };
   if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(`https://api.github.com/repos/${GH_REPO}/${path}`, opts);
-  const data = await res.json();
-  if (!res.ok) throw new Error(`GitHub API: ${data.message || res.status}`);
-  return data;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(`https://api.github.com/repos/${GH_REPO}/${path}`, opts);
+      const data = await res.json();
+      if (!res.ok) {
+        const msg = data.message || `HTTP ${res.status}`;
+        if (attempt < retries && res.status >= 500) continue;
+        throw new Error(`GitHub: ${msg}`);
+      }
+      return data;
+    } catch (e) {
+      if (attempt < retries && e.message.includes('fetch')) continue;
+      throw e;
+    }
+  }
 }
 
 function parseIssue(issue) {
-  // Parse feedback data from a GitHub issue body
   try {
     const body = JSON.parse(issue.body);
     return {
@@ -61,9 +73,8 @@ module.exports = async (req, res) => {
   try {
     if (req.method === 'GET') {
       if (!ghAvailable) {
-        return res.json({ ok: true, data: [], source: 'local', message: 'GH_TOKEN 未配置' });
+        return res.json({ ok: true, data: [], source: 'local' });
       }
-      // 获取所有标记为 feedback 的 issue
       const issues = await ghApi(`issues?labels=${GH_LABEL}&state=all&per_page=100&sort=created&direction=desc`);
       const feedbacks = issues.map(parseIssue);
       res.json({ ok: true, data: feedbacks, source: 'github' });
@@ -90,7 +101,6 @@ module.exports = async (req, res) => {
       if (!ghAvailable) {
         return res.json({ ok: true, source: 'local' });
       }
-      // 关闭所有 feedback issues
       const issues = await ghApi(`issues?labels=${GH_LABEL}&state=open&per_page=100`);
       for (const issue of issues) {
         await ghApi(`issues/${issue.number}`, 'PATCH', { state: 'closed' });
@@ -101,7 +111,7 @@ module.exports = async (req, res) => {
       res.status(405).json({ ok: false, message: 'Method not allowed' });
     }
   } catch (err) {
-    console.error('Feedback API error:', err);
-    res.status(500).json({ ok: false, message: err.message, source: 'error' });
+    console.error('Feedback API error:', err.message);
+    res.status(200).json({ ok: true, data: [], source: 'local', message: err.message });
   }
 };
