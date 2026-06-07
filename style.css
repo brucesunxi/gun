@@ -762,7 +762,58 @@
   @media (pointer: coarse) {
     .touch-zoom { display: flex; }
     canvas { cursor: default; }
+    #touchControls { display: flex; }
   }
+
+  /* Touch controls - directional + fire buttons */
+  #touchControls {
+    display: none;
+    position: fixed;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    pointer-events: none;
+    height: 80px;
+  }
+  #touchControls button {
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    touch-action: none;
+  }
+  .touch-dir {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6);
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .touch-dir:active { background: rgba(255,255,255,0.25); color: #fff; }
+  #touchFire {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(255,60,60,0.3);
+    border: 3px solid rgba(255,60,60,0.5);
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  #touchFire:active { background: rgba(255,60,60,0.6); transform: scale(0.92); }
   @media (max-width: 920px) {
     body { align-items: flex-start; padding-top: 0; }
     #gameContainer { border: none; border-radius: 0; }

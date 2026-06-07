@@ -32,6 +32,13 @@
   <button class="shop-btn" id="shopBtn" style="display:none">🏪 商店</button>
   <button class="sound-toggle" id="soundToggle" style="display:none">🔊 音效</button>
   <button class="bgm-toggle" id="bgmToggle" style="display:none">🎵 BGM</button>
+  <button class="touch-shoot-btn" id="touchShootBtn" style="display:none">🔥</button>
+  <div id="touchControls" style="display:none">
+    <button id="touchLeft" class="touch-dir">◀</button>
+    <button id="touchRight" class="touch-dir">▶</button>
+    <button id="touchFire">🔥</button>
+  </div>
+  <button id="touchZoom" class="touch-zoom" style="display:none">🔭</button>
   
     <div class="shop-panel">
       <h2>🏪 军火商店</h2>
@@ -123,7 +130,9 @@
       </div>
     </div>
     <div class="start-bgm-row">
-      <span>背景音乐:</span>
+      <span>音效:</span>
+      <button class="start-bgm-btn" id="startSoundBtn">🔊 开启</button>
+      <span style="margin-left:12px;">背景音乐:</span>
       <button class="start-bgm-btn" id="startBgmBtn">🎵 开启</button>
     </div>
     <button class="start-btn" id="startBtn">进入战场</button>

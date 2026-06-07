@@ -174,8 +174,16 @@ function syncBgmToggleUI() {
   document.getElementById('startBgmBtn').textContent = bgmEnabled?'\u{1F3B5} 开启':'\u{1F3B5} 关闭';
   document.getElementById('startBgmBtn').classList.toggle('on',bgmEnabled);
 }
+function syncSoundToggleUI() {
+  const btn = document.getElementById('startSoundBtn');
+  if (btn) {
+    btn.textContent = soundEnabled?'\u{1F50A} 开启':'\u{1F507} 关闭';
+    btn.classList.toggle('on', soundEnabled);
+  }
+}
 document.getElementById('bgmToggle').addEventListener('click',()=>bgm.toggle());
 document.getElementById('startBgmBtn').addEventListener('click',()=>{bgmEnabled=!bgmEnabled;syncBgmToggleUI();});
+document.getElementById('startSoundBtn').addEventListener('click',()=>{soundEnabled=!soundEnabled;syncSoundToggleUI();});
 
 // State
 const game = {
@@ -703,6 +711,8 @@ function update() {
   player.moving=false;const sm=game.zoomed?0.35:1;
   if(keys.left){player.x-=player.speed*sm;player.dir=-1;player.moving=true;}
   if(keys.right){player.x+=player.speed*sm;player.dir=1;player.moving=true;}
+  if(touchDirLeft){player.x-=player.speed*1.2*sm;player.dir=-1;player.moving=true;}
+  if(touchDirRight){player.x+=player.speed*1.2*sm;player.dir=1;player.moving=true;}
   if(touchTargetX!==null){const cv=document.getElementById('gameCanvas'),rect=cv.getBoundingClientRect(),gx=(touchTargetX-rect.left)/rect.width*W,dx=gx-player.x;if(Math.abs(dx)>2){player.x+=Math.sign(dx)*player.speed*1.5*sm;player.dir=dx>0?1:-1;player.moving=true;}}
   player.x=clamp(player.x,30,W-30);
   if(player.shootCooldown>0)player.shootCooldown--;
@@ -790,10 +800,50 @@ document.addEventListener('keyup',(e)=>{
 
 // Touch controls: follow finger + auto-shoot
 let touchTargetX = null;
+let touchDirLeft = false;
+let touchDirRight = false;
 document.getElementById('touchZoomBtn').addEventListener('click',()=>{game.zoomed=!game.zoomed;keys.zoom=game.zoomed;});
 
+// 画布级触摸 - 直接处理射击
+const touchCanvas = document.getElementById('gameCanvas');
+touchCanvas.addEventListener('touchstart', (e) => {
+  if (game.running && !game.over) {
+    keys.space = true;
+  }
+}, {passive: true});
+touchCanvas.addEventListener('touchend', (e) => {
+  if (e.touches.length === 0) {
+    keys.space = false;
+  }
+}, {passive: true});
+
+// 触屏方向按钮
+document.getElementById('touchLeft').addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  touchDirLeft = true;
+  player.dir = -1;
+}, {passive: false});
+document.getElementById('touchLeft').addEventListener('touchend', () => { touchDirLeft = false; });
+document.getElementById('touchLeft').addEventListener('touchcancel', () => { touchDirLeft = false; });
+
+document.getElementById('touchRight').addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  touchDirRight = true;
+  player.dir = 1;
+}, {passive: false});
+document.getElementById('touchRight').addEventListener('touchend', () => { touchDirRight = false; });
+document.getElementById('touchRight').addEventListener('touchcancel', () => { touchDirRight = false; });
+
+// 触屏射击按钮
+document.getElementById('touchFire').addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  keys.space = true;
+}, {passive: false});
+document.getElementById('touchFire').addEventListener('touchend', () => { keys.space = false; });
+document.getElementById('touchFire').addEventListener('touchcancel', () => { keys.space = false; });
+
 document.addEventListener('touchstart',(e)=>{
-  if (e.target.closest('#shopOverlay') || e.target.closest('#gameOver') || e.target.closest('#victoryScreen') || e.target.closest('#startScreen') || e.target.closest('.touch-zoom')) return;
+  if (e.target.closest('#shopOverlay') || e.target.closest('#gameOver') || e.target.closest('#victoryScreen') || e.target.closest('#startScreen') || e.target.closest('.touch-zoom') || e.target.closest('#touchControls')) return;
   const t = e.touches[0];
   touchTargetX = t.clientX;
   keys.space = true; // 触屏自动射击
