@@ -441,13 +441,14 @@
   #gameOver, #victoryScreen {
     position: absolute;
     inset: 0;
-    display: flex;
+    display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     background: rgba(10,10,20,0.95);
     z-index: 30;
   }
+  #gameOver.open, #victoryScreen.open { display: flex; }
   #gameOver h1 { color: #ff4444; font-size: 42px; margin-bottom: 10px; }
   #victoryScreen h1 { color: #ffd700; font-size: 42px; margin-bottom: 10px; }
   #gameOver p, #victoryScreen p { color: #ccc; font-size: 16px; margin: 4px 0; }
@@ -464,7 +465,7 @@
 
   /* ==================== IN-GAME BUTTONS ==================== */
   .train-exit-btn {
-    position: fixed; top: 44px; right: 16px;
+    position: fixed; top: 76px; right: 16px;
     color: #888; font-size: 13px; cursor: pointer;
     background: rgba(30,30,40,0.8); border: 1px solid #555;
     border-radius: 4px; padding: 2px 8px; font-family: inherit;
