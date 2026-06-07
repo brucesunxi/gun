@@ -1102,6 +1102,12 @@ function saveUserData(username, data) {
   const allData = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
   allData[username] = data;
   localStorage.setItem(USERS_DATA_KEY, JSON.stringify(allData));
+  // 同步到云端
+  fetch('/api/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, userData: data })
+  }).catch(() => {});
 }
 
 function setCurrentUser(username) {
@@ -1572,6 +1578,8 @@ function showAdminPanel() {
   panel.classList.add('open');
   panel.style.display = 'flex';
   renderAdminFeedback();
+  // 后台同步用户数据
+  fetchRemoteUsers();
 }
 
 function hideAdminPanel() {
@@ -1631,6 +1639,30 @@ function deleteFeedback(time) {
   }).catch(() => {});
 }
 
+let usersSyncAvailable = false;
+
+async function fetchRemoteUsers() {
+  try {
+    const res = await fetch('/api/users');
+    if (!res.ok) throw new Error('API error');
+    const json = await res.json();
+    if (json.ok && json.source === 'kv') {
+      usersSyncAvailable = true;
+      const remote = json.data || {};
+      const local = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
+      // 合并远程数据到本地（远程优先）
+      for (const [name, data] of Object.entries(remote)) {
+        if (!local[name] || data.totalScore > (local[name].totalScore || 0)) {
+          local[name] = data;
+        }
+      }
+      localStorage.setItem(USERS_DATA_KEY, JSON.stringify(local));
+      return local;
+    }
+  } catch (e) { /* API 不可用 */ }
+  return JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
+}
+
 function renderAdminUsers() {
   const list = document.getElementById('adminUsersList');
   if (!list) return;
@@ -1640,7 +1672,8 @@ function renderAdminUsers() {
     list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;font-size:13px;">暂无用户数据</div>';
     return;
   }
-  let html = `<div style="color:#888;font-size:11px;margin-bottom:8px;">共 ${users.length} 位用户</div>`;
+  const syncStatus = usersSyncAvailable ? '🌐 跨设备已同步' : '📱 仅本机';
+  let html = `<div style="color:#888;font-size:11px;margin-bottom:8px;">共 ${users.length} 位用户（${syncStatus}）</div>`;
   users.sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
   users.forEach(u => {
     const winRate = u.gamesPlayed > 0 ? Math.round(u.gamesWon / u.gamesPlayed * 100) : 0;
@@ -1682,14 +1715,14 @@ function escHtml(s) {
       if (content) {
         content.style.display = '';
         if (target === 'feedback') renderAdminFeedback();
-        else if (target === 'users') renderAdminUsers();
+        else if (target === 'users') { renderAdminUsers(); fetchRemoteUsers().then(renderAdminUsers); }
       }
     });
   });
 
   document.getElementById('adminPanelClose').addEventListener('click', hideAdminPanel);
   document.getElementById('adminFeedbackRefresh').addEventListener('click', renderAdminFeedback);
-  document.getElementById('adminUsersRefresh').addEventListener('click', renderAdminUsers);
+  document.getElementById('adminUsersRefresh').addEventListener('click', () => { fetchRemoteUsers().then(renderAdminUsers); });
   document.getElementById('adminClearFeedback').addEventListener('click', () => {
     if (confirm('确定清空所有反馈？')) {
       clearAllFeedback();
