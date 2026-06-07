@@ -208,7 +208,8 @@ const levelSystem = {
     {level:5,name:'精英对决',enemies:20,spawnInterval:65,enemyHp:35,enemySpeed:1.3,hasBoss:true,bossHp:200,bossCount:1,desc:'20名敌人+小BOSS'},
     {level:6,name:'血腥战场',enemies:25,spawnInterval:60,enemyHp:40,enemySpeed:1.4,hasBoss:true,bossHp:300,bossCount:1,desc:'25名敌人+强化BOSS'},
     {level:7,name:'死亡峡谷',enemies:30,spawnInterval:55,enemyHp:45,enemySpeed:1.5,hasBoss:true,bossHp:350,bossCount:2,desc:'30名敌人+双BOSS'},
-    {level:8,name:'终极决战',enemies:35,spawnInterval:50,enemyHp:50,enemySpeed:1.6,hasBoss:true,bossHp:400,bossCount:3,desc:'35名敌人+三BOSS'}
+    {level:8,name:'终极决战',enemies:35,spawnInterval:50,enemyHp:50,enemySpeed:1.6,hasBoss:true,bossHp:400,bossCount:3,desc:'35名敌人+三BOSS'},
+    {level:9,name:'终极试炼',enemies:25,spawnInterval:40,enemyHp:80,enemySpeed:2.0,hasBoss:true,bossHp:600,bossCount:1,desc:'25名精英+终极BOSS'}
   ],
   getCurrent(){return this.levels[game.currentLevel-1]||this.levels[0];},
   getConfig(lvl){return this.levels[Math.min(lvl-1,this.levels.length-1)];}
@@ -256,13 +257,13 @@ function saveProgress(){
 function unlockNextLevel(){
   // 通关血量奖励：恢复50点（不超过最大值）
   player.hp = Math.min(player.maxHp, player.hp + 50);
-  // 先解锁下一关
-  if(game.currentLevel>=game.unlockedLevel&&game.currentLevel<8){
+  // 先解锁下一关（最多到第9关终极试炼）
+  if(game.currentLevel>=game.unlockedLevel&&game.currentLevel<9){
     game.unlockedLevel=game.currentLevel+1;
     saveProgress();
   }
   // 然后自动选择下一关（如果不是最后一关）
-  if(game.currentLevel<8){
+  if(game.currentLevel<9){
     game.currentLevel=game.currentLevel+1;
   }
 }
