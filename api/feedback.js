@@ -1,62 +1,7 @@
 // 跨设备反馈 API (Vercel Serverless Function)
-// 使用 GitHub Issues 存储反馈，无需额外数据库配置
+// 使用 Vercel Blob 存储 feedback.json，无需数据库
 
-const GH_REPO = 'brucesunxi/gun';
-const GH_LABEL = 'feedback';
-
-async function ghApi(path, method = 'GET', body = null, retries = 2) {
-  const token = process.env.GH_TOKEN;
-  if (!token) throw new Error('GH_TOKEN not configured');
-  const opts = {
-    method,
-    headers: {
-      Authorization: `token ${token}`,
-      'Content-Type': 'application/json',
-      'User-Agent': 'gun-feedback',
-      'Accept': 'application/vnd.github.v3+json'
-    }
-  };
-  if (body) opts.body = JSON.stringify(body);
-
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      const res = await fetch(`https://api.github.com/repos/${GH_REPO}/${path}`, opts);
-      const data = await res.json();
-      if (!res.ok) {
-        const msg = data.message || `HTTP ${res.status}`;
-        if (attempt < retries && res.status >= 500) continue;
-        throw new Error(`GitHub: ${msg}`);
-      }
-      return data;
-    } catch (e) {
-      if (attempt < retries && e.message.includes('fetch')) continue;
-      throw e;
-    }
-  }
-}
-
-function parseIssue(issue) {
-  try {
-    const body = JSON.parse(issue.body);
-    return {
-      text: body.text || issue.title.replace(/^反馈:/, '').trim(),
-      time: body.time || issue.created_at,
-      level: body.level || 1,
-      score: body.score || 0,
-      username: body.username || '匿名',
-      issueUrl: issue.html_url
-    };
-  } catch {
-    return {
-      text: issue.title.replace(/^反馈:/, '').trim(),
-      time: issue.created_at,
-      level: 1,
-      score: 0,
-      username: '匿名',
-      issueUrl: issue.html_url
-    };
-  }
-}
+const { put, list } = require('@vercel/blob');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -68,16 +13,23 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const ghAvailable = !!process.env.GH_TOKEN;
+  const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+  const available = !!blobToken;
 
   try {
     if (req.method === 'GET') {
-      if (!ghAvailable) {
-        return res.json({ ok: true, data: [], source: 'local' });
+      let data = [];
+      if (available) {
+        try {
+          const { blobs } = await list({ prefix: 'feedback.json', token: blobToken });
+          if (blobs.length > 0) {
+            const resp = await fetch(blobs[0].url);
+            data = await resp.json();
+            if (!Array.isArray(data)) data = [];
+          }
+        } catch (e) { /* 文件尚不存在 */ }
       }
-      const issues = await ghApi(`issues?labels=${GH_LABEL}&state=all&per_page=100&sort=created&direction=desc`);
-      const feedbacks = issues.map(parseIssue);
-      res.json({ ok: true, data: feedbacks, source: 'github' });
+      return res.json({ ok: true, data, source: available ? 'blob' : 'local' });
 
     } else if (req.method === 'POST') {
       const { text, level, score, username } = req.body || {};
@@ -87,31 +39,43 @@ module.exports = async (req, res) => {
 
       const fb = { text: text.trim(), time: new Date().toISOString(), level: level || 1, score: score || 0, username: username || '匿名用户' };
 
-      if (ghAvailable) {
-        await ghApi('issues', 'POST', {
-          title: `反馈: ${fb.text.slice(0, 50)}${fb.text.length > 50 ? '...' : ''}`,
-          body: JSON.stringify(fb, null, 2),
-          labels: [GH_LABEL]
+      if (available) {
+        let all = [];
+        try {
+          const { blobs } = await list({ prefix: 'feedback.json', token: blobToken });
+          if (blobs.length > 0) {
+            const resp = await fetch(blobs[0].url);
+            all = await resp.json();
+            if (!Array.isArray(all)) all = [];
+          }
+        } catch (e) { /* 首次写入 */ }
+        all.push(fb);
+        await put('feedback.json', JSON.stringify(all), {
+          access: 'public',
+          contentType: 'application/json',
+          addRandomSuffix: false,
+          token: blobToken
         });
       }
 
-      res.json({ ok: true, data: fb, source: ghAvailable ? 'github' : 'local' });
+      return res.json({ ok: true, data: fb, source: available ? 'blob' : 'local' });
 
     } else if (req.method === 'DELETE') {
-      if (!ghAvailable) {
-        return res.json({ ok: true, source: 'local' });
+      if (available) {
+        try {
+          const { blobs } = await list({ prefix: 'feedback.json', token: blobToken });
+          for (const b of blobs) {
+            await fetch(b.url, { method: 'DELETE', headers: { Authorization: `Bearer ${blobToken}` } });
+          }
+        } catch (e) { /* ignore */ }
       }
-      const issues = await ghApi(`issues?labels=${GH_LABEL}&state=open&per_page=100`);
-      for (const issue of issues) {
-        await ghApi(`issues/${issue.number}`, 'PATCH', { state: 'closed' });
-      }
-      res.json({ ok: true, source: 'github', closed: issues.length });
+      return res.json({ ok: true, source: available ? 'blob' : 'local' });
 
     } else {
-      res.status(405).json({ ok: false, message: 'Method not allowed' });
+      return res.status(405).json({ ok: false, message: 'Method not allowed' });
     }
   } catch (err) {
     console.error('Feedback API error:', err.message);
-    res.status(200).json({ ok: true, data: [], source: 'local', message: err.message });
+    return res.json({ ok: true, data: [], source: 'local', message: err.message });
   }
 };

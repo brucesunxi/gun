@@ -19,7 +19,9 @@
       "Bash(git remote *)",
       "Bash(node *)",
       "Bash(nslookup gun-czmbsnjl3-brucesunxis-projects.vercel.app)",
-      "Bash(ping -c 1 -t 3 gun-czmbsnjl3-brucesunxis-projects.vercel.app)"
+      "Bash(ping -c 1 -t 3 gun-czmbsnjl3-brucesunxis-projects.vercel.app)",
+      "Bash(npm info *)",
+      "Bash(npm install *)"
     ]
   }
 }
