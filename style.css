@@ -724,6 +724,8 @@
     overflow-y: auto;
     min-height: 200px;
     max-height: 400px;
+    touch-action: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .admin-list {
     display: flex;
