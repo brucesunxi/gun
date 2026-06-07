@@ -1124,6 +1124,8 @@ function setCurrentUser(username) {
   game.currentLevel = userData.currentLevel;
   game.rank = userData.rank;
   game.rankScore = userData.rankScore;
+  // 保存用户数据到本地和云端
+  saveUserData(username, userData);
 }
 
 function recordGameResult(score, won, level) {
