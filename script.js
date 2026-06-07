@@ -198,7 +198,7 @@ const game = {
   currentLevel:1,unlockedLevel:1,
 };
 
-// 8关系统
+// 55关系统（1-11手动设计，12-55自动生成）
 const levelSystem = {
   levels: [
     {level:1,name:'新兵训练',enemies:5,spawnInterval:100,enemyHp:15,enemySpeed:0.8,hasBoss:false,desc:'5名敌人，慢速刷新'},
@@ -209,10 +209,42 @@ const levelSystem = {
     {level:6,name:'血腥战场',enemies:25,spawnInterval:60,enemyHp:40,enemySpeed:1.4,hasBoss:true,bossHp:300,bossCount:1,desc:'25名敌人+强化BOSS'},
     {level:7,name:'死亡峡谷',enemies:30,spawnInterval:55,enemyHp:45,enemySpeed:1.5,hasBoss:true,bossHp:350,bossCount:2,desc:'30名敌人+双BOSS'},
     {level:8,name:'终极决战',enemies:35,spawnInterval:50,enemyHp:50,enemySpeed:1.6,hasBoss:true,bossHp:400,bossCount:3,desc:'35名敌人+三BOSS'},
-    {level:9,name:'终极试炼',enemies:25,spawnInterval:40,enemyHp:80,enemySpeed:2.0,hasBoss:true,bossHp:600,bossCount:1,desc:'25名精英+终极BOSS'}
+    {level:9,name:'终极试炼',enemies:25,spawnInterval:40,enemyHp:80,enemySpeed:2.0,hasBoss:true,bossHp:600,bossCount:1,desc:'25名精英+终极BOSS'},
+    {level:10,name:'地狱之门',enemies:30,spawnInterval:38,enemyHp:90,enemySpeed:2.2,hasBoss:true,bossHp:700,bossCount:1,bossAddEnemies:7,desc:'30名敌人+BOSS+7名援军'},
+    {level:11,name:'众神之巅',enemies:35,spawnInterval:35,enemyHp:100,enemySpeed:2.4,hasBoss:true,bossHp:800,bossCount:3,postBossWave:10,desc:'35名敌人+三大BOSS+10精英'}
   ],
-  getCurrent(){return this.levels[game.currentLevel-1]||this.levels[0];},
-  getConfig(lvl){return this.levels[Math.min(lvl-1,this.levels.length-1)];}
+  getCurrent(){
+    const lvl = this.getConfig(game.currentLevel);
+    return lvl || this.levels[0];
+  },
+  getConfig(lvl){
+    if (lvl <= this.levels.length) return this.levels[lvl-1];
+    // 12-55关自动生成
+    return this.generateLevel(lvl);
+  },
+  generateLevel(lvl){
+    const base = 25 + (lvl - 11) * 2; // 敌人数量递增
+    const hasBoss = lvl % 3 === 0; // 每3关一个Boss
+    const bossCount = hasBoss ? Math.min(3, 1 + Math.floor((lvl - 12) / 9)) : 0;
+    const bossHp = hasBoss ? Math.round(400 + (lvl - 11) * 35) : 0;
+    const hasAdd = hasBoss && lvl % 2 === 0; // 部分Boss关有援军
+    const hasPost = hasBoss && lvl % 5 === 0; // 部分Boss关有后续波次
+    return {
+      level: lvl,
+      name: lvl <= 20 ? '钢铁试炼' : (lvl <= 35 ? '深渊征途' : '混沌终焉'),
+      enemies: Math.min(base, 80),
+      spawnInterval: Math.max(12, 40 - (lvl - 11) * 0.5),
+      enemyHp: Math.round(80 + (lvl - 11) * 8),
+      enemySpeed: Math.min(3.5, 2.0 + (lvl - 11) * 0.05),
+      hasBoss,
+      bossHp,
+      bossCount,
+      bossAddEnemies: hasAdd ? Math.min(10, 3 + Math.floor((lvl - 12) / 6)) : 0,
+      postBossWave: hasPost ? Math.min(15, 5 + Math.floor((lvl - 12) / 4)) : 0,
+      desc: hasBoss ? `${base}名敌人+${bossCount}BOSS${hasAdd?'+援军':''}${hasPost?'+精英波次':''}` : `${base}名敌人`
+    };
+  },
+  get totalLevels() { return 55; }
 };
 
 // 等级系统
@@ -257,13 +289,13 @@ function saveProgress(){
 function unlockNextLevel(){
   // 通关血量奖励：恢复50点（不超过最大值）
   player.hp = Math.min(player.maxHp, player.hp + 50);
-  // 先解锁下一关（最多到第9关终极试炼）
-  if(game.currentLevel>=game.unlockedLevel&&game.currentLevel<9){
+  // 先解锁下一关（最多到55关）
+  if(game.currentLevel>=game.unlockedLevel&&game.currentLevel<55){
     game.unlockedLevel=game.currentLevel+1;
     saveProgress();
   }
-  // 然后自动选择下一关（如果不是最后一关）
-  if(game.currentLevel<9){
+  // 然后自动选择下一关
+  if(game.currentLevel<55){
     game.currentLevel=game.currentLevel+1;
   }
 }
@@ -383,9 +415,19 @@ function triggerBoss() {
   const bossCount=cfg.bossCount||1;
   const remainingBosses=bossCount-game.bossesDefeated;
   if(remainingBosses<=0){
-    // 所有BOSS都被击败
+    // 所有BOSS都被击败 — 检查是否有后续精英波次
+    const postWave = cfg.postBossWave || 0;
+    if (postWave > 0 && !game.postWaveSpawned) {
+      game.postWaveSpawned = true;
+      game.totalEnemies += postWave;
+      waveInfo.textContent='\u{2620}\u{FE0F} 精英波次 '+postWave+' 名敌人来袭！';
+      waveInfo.style.opacity='1';waveInfo.style.color='#ff6600';waveInfo.style.fontSize='36px';
+      setTimeout(()=>{waveInfo.style.opacity='0';},2000);
+      game.running=true;game.bossActive=false;game.zoomed=false;
+      return;
+    }
     game.running=false;game.won=true;game.zoomed=false;game.bossActive=false;
-    vicScore.textContent=game.score;vicTotal.textContent=game.totalEnemies+bossCount;
+    vicScore.textContent=game.score;vicTotal.textContent=game.totalEnemies;
     victoryScreen.style.display='flex';
     createExplosion(W/2,H/3,'#ff4400',60);createExplosion(W/2-50,H/3+30,'#ff8800',40);createExplosion(W/2+50,H/3-20,'#ffcc00',30);
     game.screenShake=0;playSound('victory');
@@ -397,9 +439,16 @@ function triggerBoss() {
   setTimeout(()=>{waveInfo.style.opacity='0';waveInfo.style.color='#ffd700';waveInfo.style.fontSize='36px';},2000);
   game.screenShake=15;
   const bossHp=Math.round(cfg.bossHp||250);
-  // 多个BOSS时位置分散
   const offsetX=remainingBosses>1?(game.bossesDefeated%2===0?-80:80):0;
   game.boss={x:W/2+offsetX,y:-80,w:60,h:70,hp:bossHp,maxHp:bossHp,speed:0.8,dir:1,shootTimer:0,shootInterval:Math.max(25,55-game.currentLevel*3),phase:1,state:'enter',enterTimer:120,animFrame:0,animTimer:0};
+  // BOSS登场时带援军
+  const addEnemies = cfg.bossAddEnemies || 0;
+  if (addEnemies > 0 && game.bossesDefeated === 0) {
+    game.totalEnemies += addEnemies;
+    waveInfo.textContent='\u{1F525} BOSS 带着 '+addEnemies+' 名援军！';
+    waveInfo.style.opacity='1';waveInfo.style.color='#ff4444';waveInfo.style.fontSize='32px';
+    setTimeout(()=>{waveInfo.style.opacity='0';},2000);
+  }
 }
 function checkBossDefeated() {
   if(!game.bossActive||!game.boss||game.boss.hp>0)return;
@@ -408,16 +457,26 @@ function checkBossDefeated() {
   const cfg=game.levelConfig||levelSystem.getCurrent();
   const bossCount=cfg.bossCount||1;
   if(game.bossesDefeated>=bossCount){
-    // 所有BOSS击败，胜利
+    // 检查是否有后续精英波次
+    const postWave = cfg.postBossWave || 0;
+    if (postWave > 0 && !game.postWaveSpawned) {
+      game.postWaveSpawned = true;
+      game.totalEnemies += postWave;
+      waveInfo.textContent='\u{2620}\u{FE0F} 精英波次 '+postWave+' 名敌人来袭！';
+      waveInfo.style.opacity='1';waveInfo.style.color='#ff6600';waveInfo.style.fontSize='36px';
+      setTimeout(()=>{waveInfo.style.opacity='0';},2000);
+      game.running=true;
+      game.screenShake=0;
+      return;
+    }
     game.running=false;game.won=true;game.zoomed=false;game.screenShake=0;
-    vicScore.textContent=game.score;vicTotal.textContent=game.totalEnemies+bossCount;
+    vicScore.textContent=game.score;vicTotal.textContent=game.totalEnemies;
     victoryScreen.style.display='flex';
     createExplosion(W/2,H/3,'#ff4400',60);createExplosion(W/2-50,H/3+30,'#ff8800',40);createExplosion(W/2+50,H/3-20,'#ffcc00',30);
     game.screenShake=0;playSound('victory');
     recordGameResult(game.score, true, game.currentLevel);
     unlockNextLevel();
   } else {
-    // 还有BOSS，继续召唤
     setTimeout(()=>{triggerBoss();},2000);
   }
 }
@@ -579,7 +638,7 @@ function resetGame() {
   game.frame=0;game.particles=[];game.bullets=[];game.enemies=[];game.supplies=[];game.shellCasings=[];game.muzzleFlashes=[];
   game.screenShake=0;game.enemySpawnTimer=0;game.enemySpawnInterval=game.trainingMode?90:cfg.spawnInterval;
   game.maxEnemiesOnScreen=game.trainingMode?6:Math.min(4,Math.ceil(cfg.enemies/3));
-  game.over=false;game.won=false;game.zoomed=false;game.bossActive=false;game.boss=null;game.bosses=[];game.bossesDefeated=0;
+  game.over=false;game.won=false;game.zoomed=false;game.bossActive=false;game.boss=null;game.bosses=[];game.bossesDefeated=0;game.postWaveSpawned=false;
   game.levelConfig=cfg;
   keys.zoom=false;game.running=true;
   // 血量部分恢复：恢复30%最大血量（最少20点），难度越高恢复越少
@@ -952,14 +1011,15 @@ function renderLevelSelector(){
   const grid=document.getElementById('levelGrid');
   if(!grid)return;
   grid.innerHTML='';
-  levelSystem.levels.forEach(lvl=>{
+  for (let i = 1; i <= 55; i++) {
+    const lvl = levelSystem.getConfig(i);
     const btn=document.createElement('button');
-    btn.className='level-btn'+(lvl.level<=game.unlockedLevel?' unlocked':'')+(lvl.level===game.currentLevel?' active':'');
-    btn.textContent=lvl.level;
-    btn.disabled=lvl.level>game.unlockedLevel;
-    btn.onclick=()=>selectLevel(lvl.level);
+    btn.className='level-btn'+(i<=game.unlockedLevel?' unlocked':'')+(i===game.currentLevel?' active':'');
+    btn.textContent=i;
+    btn.disabled=i>game.unlockedLevel;
+    btn.onclick=()=>selectLevel(i);
     grid.appendChild(btn);
-  });
+  }
   updateLevelInfo();
 }
 function updateLevelInfo(){
