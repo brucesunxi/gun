@@ -1241,7 +1241,7 @@ document.getElementById('setUsernameBtn').addEventListener('click', () => {
 });
 
 // 登录
-document.getElementById('loginBtn').addEventListener('click', () => {
+document.getElementById('loginBtn').addEventListener('click', async () => {
   const inputPwd = document.getElementById('loginPassword').value;
   const inputUser = document.getElementById('loginUsername').value.trim();
   const savedPassword = localStorage.getItem(PASSWORD_KEY);
@@ -1252,6 +1252,15 @@ document.getElementById('loginBtn').addEventListener('click', () => {
     hintEl.style.color = '#ff6666';
     return;
   }
+
+  // 检查用户是否被封禁
+  const isBanned = await checkUserBanned(inputUser);
+  if (isBanned) {
+    hintEl.textContent = '该账号已被封禁，无法登录';
+    hintEl.style.color = '#ff6666';
+    return;
+  }
+
   if (inputPwd === savedPassword) {
     // 密码正确，设置当前用户
     localStorage.setItem(USERNAME_KEY, inputUser);
@@ -1690,13 +1699,132 @@ function renderAdminUsers() {
   users.sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
   users.forEach(u => {
     const winRate = u.gamesPlayed > 0 ? Math.round(u.gamesWon / u.gamesPlayed * 100) : 0;
-    html += `<div class="admin-user-item">
+    const isBanned = u.banned && u.banExpiry && u.banExpiry > Date.now();
+    const banText = isBanned ? `🚫 封禁至 ${new Date(u.banExpiry).toLocaleDateString('zh-CN')}` : '';
+    html += `<div class="admin-user-item" style="position:relative;${isBanned?'opacity:0.5;':''}">
       <span class="u-name">${escHtml(u.username || '未知')}</span>
       <div class="u-stats">🏆 总分 ${u.totalScore || 0} · 最高 ${u.highScore || 0} · 🎮 ${u.gamesPlayed || 0}场（${winRate}%胜率）</div>
-      <div class="u-stats">📈 ${u.rank || 'bronze'} · 解锁至第${u.unlockedLevel || 1}关</div>
+      <div class="u-stats">📈 ${u.rank || 'bronze'} · 解锁至第${u.unlockedLevel || 1}关 ${banText}</div>
+      <div class="u-actions" style="position:absolute;top:4px;right:4px;display:flex;gap:4px;">
+        ${isBanned
+          ? `<button class="u-btn unban" data-user="${escHtml(u.username)}">✅ 解封</button>`
+          : `<button class="u-btn ban" data-user="${escHtml(u.username)}" data-days="10">🚫 10天</button>
+             <button class="u-btn ban" data-user="${escHtml(u.username)}" data-days="50">🚫 50天</button>
+             <button class="u-btn ban" data-user="${escHtml(u.username)}" data-days="183">🚫 半年</button>`
+        }
+        <button class="u-btn delete" data-user="${escHtml(u.username)}" style="background:#442222;color:#ff6666;">🗑️ 删除</button>
+      </div>
     </div>`;
   });
   list.innerHTML = html;
+
+  // 绑定按钮事件
+  list.querySelectorAll('.u-btn.ban').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const username = btn.dataset.user;
+      const days = parseInt(btn.dataset.days);
+      if (confirm(`确定封禁用户 "${username}" ${days}天？`)) {
+        banUser(username, days);
+        renderAdminUsers();
+      }
+    });
+  });
+
+  list.querySelectorAll('.u-btn.unban').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const username = btn.dataset.user;
+      if (confirm(`确定解封用户 "${username}"？`)) {
+        unbanUser(username);
+        renderAdminUsers();
+      }
+    });
+  });
+
+  list.querySelectorAll('.u-btn.delete').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const username = btn.dataset.user;
+      if (confirm(`⚠️ 确定删除用户 "${username}"？此操作不可恢复！`)) {
+        deleteUser(username);
+        renderAdminUsers();
+      }
+    });
+  });
+}
+
+async function checkUserBanned(username) {
+  // 先检查本地
+  const allData = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
+  if (allData[username] && allData[username].banned && allData[username].banExpiry > Date.now()) {
+    return true;
+  }
+  // 再检查云端
+  try {
+    const res = await fetch('/api/users');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.ok && json.data && json.data[username]) {
+        const user = json.data[username];
+        if (user.banned && user.banExpiry > Date.now()) {
+          // 同步到本地
+          allData[username] = user;
+          localStorage.setItem(USERS_DATA_KEY, JSON.stringify(allData));
+          return true;
+        }
+      }
+    }
+  } catch (e) {}
+  return false;
+}
+
+function banUser(username, days) {
+  if (!isAdmin) return;
+  // 本地封禁
+  const allData = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
+  if (allData[username]) {
+    allData[username].banned = true;
+    allData[username].banExpiry = Date.now() + days * 24 * 60 * 60 * 1000;
+    localStorage.setItem(USERS_DATA_KEY, JSON.stringify(allData));
+  }
+  // 同步到云端
+  fetch('/api/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'ban', username, banDays: days })
+  }).catch(() => {});
+}
+
+function unbanUser(username) {
+  if (!isAdmin) return;
+  // 本地解封
+  const allData = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
+  if (allData[username]) {
+    allData[username].banned = false;
+    allData[username].banExpiry = null;
+    localStorage.setItem(USERS_DATA_KEY, JSON.stringify(allData));
+  }
+  // 同步到云端
+  fetch('/api/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'unban', username })
+  }).catch(() => {});
+}
+
+function deleteUser(username) {
+  if (!isAdmin) return;
+  // 本地删除
+  const allData = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
+  delete allData[username];
+  localStorage.setItem(USERS_DATA_KEY, JSON.stringify(allData));
+  // 同步到云端
+  fetch('/api/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'delete', username })
+  }).catch(() => {});
 }
 
 function escHtml(s) {

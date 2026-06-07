@@ -42,8 +42,51 @@ module.exports = async (req, res) => {
       return res.json({ ok: true, data, source: available ? 'kv' : 'local' });
 
     } else if (req.method === 'POST') {
-      const { username, userData } = req.body || {};
-      if (!username || !userData) {
+      const { action, username, userData, banDays, banUntil } = req.body || {};
+
+      if (!username) {
+        return res.status(400).json({ ok: false, message: '用户名不能为空' });
+      }
+
+      // 删除用户
+      if (action === 'delete') {
+        if (available) {
+          const all = await kvGet();
+          delete all[username];
+          await kvSet(all);
+        }
+        return res.json({ ok: true, action: 'delete', username, source: available ? 'kv' : 'local' });
+      }
+
+      // 封禁用户
+      if (action === 'ban') {
+        const banExpiry = banUntil || (banDays ? Date.now() + banDays * 24 * 60 * 60 * 1000 : null);
+        if (available) {
+          const all = await kvGet();
+          if (all[username]) {
+            all[username].banned = true;
+            all[username].banExpiry = banExpiry;
+            await kvSet(all);
+          }
+        }
+        return res.json({ ok: true, action: 'ban', username, banExpiry, source: available ? 'kv' : 'local' });
+      }
+
+      // 解封用户
+      if (action === 'unban') {
+        if (available) {
+          const all = await kvGet();
+          if (all[username]) {
+            all[username].banned = false;
+            all[username].banExpiry = null;
+            await kvSet(all);
+          }
+        }
+        return res.json({ ok: true, action: 'unban', username, source: available ? 'kv' : 'local' });
+      }
+
+      // 保存用户数据
+      if (!userData) {
         return res.status(400).json({ ok: false, message: '参数不完整' });
       }
       if (available) {

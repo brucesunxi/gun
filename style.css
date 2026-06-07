@@ -74,6 +74,12 @@
     #feedbackSubmit { background: #6a8a3a; color: #fff; }
     #feedbackClose { background: #ddd; color: #555; }
     #feedbackClose:hover { background: #ccc; }
+    .admin-user-item .u-btn { background: #e0e0e0; border-color: #bbb; color: #555; }
+    .admin-user-item .u-btn:hover { background: #d0d0d0; }
+    .admin-user-item .u-btn.ban { background: #f0e0d0; border-color: #cc8a4a; color: #aa6a3a; }
+    .admin-user-item .u-btn.ban:hover { background: #e0d0c0; }
+    .admin-user-item .u-btn.delete { background: #ffdddd; color: #cc6666; }
+    .admin-user-item .u-btn.delete:hover { background: #ffcccc; }
     .shop-btn { color: #b8860b; background: rgba(180,130,20,0.1); border-color: #b8860b; }
     .shop-btn:hover { background: rgba(180,130,20,0.2); color: #b8860b; }
     #shopOverlay { background: rgba(0,0,0,0.6); }
@@ -757,6 +763,20 @@
   .fb-del-btn:hover { opacity: 1; background: rgba(200,50,50,0.6); color: #fff; }
   .admin-user-item .u-name { color: #ffd700; font-weight: bold; }
   .admin-user-item .u-stats { color: #aaa; font-size: 11px; }
+  .admin-user-item .u-btn {
+    padding: 2px 8px;
+    font-size: 10px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    background: #333;
+    color: #ccc;
+  }
+  .admin-user-item .u-btn:hover { background: #444; color: #fff; }
+  .admin-user-item .u-btn.ban { background: #3a2a1a; border-color: #8a4a2a; color: #ddaa66; }
+  .admin-user-item .u-btn.ban:hover { background: #5a3a2a; }
+  .admin-user-item .u-btn.delete:hover { background: #662222; }
   .admin-actions {
     display: flex;
     gap: 8px;
