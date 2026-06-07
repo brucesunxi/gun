@@ -796,7 +796,7 @@ document.addEventListener('touchstart',(e)=>{
   if (e.target.closest('#shopOverlay') || e.target.closest('#gameOver') || e.target.closest('#victoryScreen') || e.target.closest('#startScreen') || e.target.closest('.touch-zoom')) return;
   const t = e.touches[0];
   touchTargetX = t.clientX;
-  // keys.space = true; // 关闭自动射击，手动按空格或点击射击
+  keys.space = true; // 触屏自动射击
 }, {passive:true});
 
 document.addEventListener('touchmove',(e)=>{
@@ -845,6 +845,10 @@ canvas.addEventListener('contextmenu',(e)=>{e.preventDefault();});
 canvas.addEventListener('mousedown',(e)=>{
   canvas.focus();
   if(e.button===2){game.zoomed=!game.zoomed;keys.zoom=game.zoomed;}
+  if(e.button===0&&!game.zoomed){keys.space=true;} // 左键射击
+});
+document.addEventListener('mouseup',(e)=>{
+  if(e.button===0)keys.space=false;
 });
 // 点击游戏容器时获得焦点（但不包括输入框）
 document.getElementById('gameContainer').addEventListener('click',(e)=>{
@@ -947,6 +951,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   // 清除当前用户，返回登录界面
   currentUser = null;
   isAdmin = false;
+  stopFeedbackCheck();
   localStorage.removeItem(CURRENT_USER_KEY);
   startScreen.style.display = 'none';
   loginScreen.style.display = 'flex';
@@ -1066,6 +1071,8 @@ document.getElementById('setPasswordBtn').addEventListener('click', () => {
   startScreen.style.display = 'flex';
   updateUsernameDisplay();
   renderLevelSelector();
+  checkNewFeedback();
+  startFeedbackCheck();
 });
 
 // 设置用户名
@@ -1090,6 +1097,8 @@ document.getElementById('setUsernameBtn').addEventListener('click', () => {
   startScreen.style.display = 'flex';
   updateUsernameDisplay();
   renderLevelSelector();
+  checkNewFeedback();
+  startFeedbackCheck();
 });
 
 // 登录
@@ -1117,6 +1126,7 @@ document.getElementById('loginBtn').addEventListener('click', () => {
     updateUsernameDisplay();
     renderLevelSelector();
     checkNewFeedback();
+    startFeedbackCheck();
   } else {
     hintEl.textContent = '密码错误，请重试';
     hintEl.style.color = '#ff6666';
@@ -1174,7 +1184,62 @@ document.getElementById('confirmPassword').addEventListener('keypress', (e) => {
 // ==================== 反馈系统 ====================
 const FEEDBACK_KEY = 'battle_shooter_feedback';
 const FEEDBACK_READ_KEY = 'battle_shooter_feedback_read';
+const FEEDBACK_API = '/api/feedback';
 
+// 是否已配置跨设备同步（KV）
+let feedbackKvAvailable = false;
+
+// 尝试从 API 获取反馈（跨设备），失败则用 localStorage
+async function fetchRemoteFeedback() {
+  try {
+    const res = await fetch(FEEDBACK_API);
+    if (!res.ok) throw new Error('API error');
+    const json = await res.json();
+    if (json.ok && json.source === 'kv') {
+      feedbackKvAvailable = true;
+      const remote = json.data || [];
+      // 合并远程数据到本地
+      const local = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
+      const localTimes = new Set(local.map(f => f.time));
+      let changed = false;
+      for (const fb of remote) {
+        if (!localTimes.has(fb.time)) {
+          local.push(fb);
+          localTimes.add(fb.time);
+          changed = true;
+        }
+      }
+      if (changed) {
+        localStorage.setItem(FEEDBACK_KEY, JSON.stringify(local));
+      }
+      return local;
+    }
+  } catch (e) {
+    // API 不可用，使用本地数据
+  }
+  const local = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
+  return local;
+}
+
+async function syncFeedbackToRemote(text) {
+  if (!text) return;
+  try {
+    await fetch(FEEDBACK_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text,
+        level: game.currentLevel,
+        score: game.score,
+        username: currentUser || '匿名用户'
+      })
+    });
+  } catch (e) {
+    // 静默失败，本地已保存
+  }
+}
+
+// 保存反馈到本地，并异步同步到云端
 function saveFeedback(text) {
   const feedback = {
     text: text,
@@ -1186,10 +1251,11 @@ function saveFeedback(text) {
   let allFeedback = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
   allFeedback.push(feedback);
   localStorage.setItem(FEEDBACK_KEY, JSON.stringify(allFeedback));
+  // 异步同步到云端
+  syncFeedbackToRemote(text);
 }
 
 function getUnreadFeedbackCount() {
-  // 只有管理员才能看到未读反馈
   if (!isAdmin) return 0;
   const allFeedback = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
   const lastRead = parseInt(localStorage.getItem(FEEDBACK_READ_KEY) || '0');
@@ -1201,7 +1267,6 @@ function markFeedbackAsRead() {
 }
 
 function getAllFeedback() {
-  // 只有管理员才能查看所有反馈
   if (!isAdmin) return [];
   return JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
 }
@@ -1210,6 +1275,8 @@ function clearAllFeedback() {
   if (!isAdmin) return;
   localStorage.removeItem(FEEDBACK_KEY);
   localStorage.removeItem(FEEDBACK_READ_KEY);
+  // 尝试同步清空远程
+  fetch(FEEDBACK_API, { method: 'DELETE' }).catch(() => {});
 }
 
 // 显示/隐藏所有游戏UI元素
@@ -1225,12 +1292,13 @@ function hideGameUI(){
 }
 
 // ==================== 反馈按钮 ====================
-// 全局函数，供 HTML onclick 调用
 window.showOverlay = function(){
   const el = document.getElementById('feedbackOverlay');
   if(el){
     el.style.cssText = 'display:flex !important;position:absolute;inset:0;background:rgba(0,0,0,0.8);justify-content:center;align-items:center;z-index:100;';
     const ft = document.getElementById('feedbackText');
+    const feedbackStatus = document.getElementById('feedbackStatus');
+    if (feedbackStatus) feedbackStatus.textContent = '';
     if(ft) setTimeout(()=>ft.focus(), 100);
   }
 };
@@ -1253,27 +1321,60 @@ document.getElementById('feedbackClose').addEventListener('click', () => {
 document.getElementById('feedbackSubmit').addEventListener('click', () => {
   const text = document.getElementById('feedbackText').value.trim();
   if (!text) {
-    alert('请输入反馈内容');
+    document.getElementById('feedbackStatus').textContent = '⚠️ 请输入反馈内容';
     return;
   }
   saveFeedback(text);
   document.getElementById('feedbackOverlay').style.display = 'none';
   document.getElementById('feedbackText').value = '';
-  alert('感谢您的反馈！');
+  // 显示感谢提示（内联样式，非 alert）
+  const status = document.getElementById('feedbackStatus');
+  if (status) {
+    status.textContent = '✅ 感谢您的反馈！';
+    status.style.cssText = 'display:block;color:#8aa84a;text-align:center;margin-top:8px;font-size:14px;';
+  }
+  // 如果管理员在线，立即检查新反馈
+  if (isAdmin) setTimeout(checkNewFeedback, 100);
 });
 
-// 开发者通知关闭
-document.getElementById('devNotifClose').addEventListener('click', () => {
+// 通知关闭按钮 - 阻止事件冒泡，避免触发父级点击
+document.getElementById('devNotifClose').addEventListener('click', (e) => {
+  e.stopPropagation();
   document.getElementById('devNotification').style.display = 'none';
 });
 
-// 检查是否有新反馈（开发者模式）
+// 检查未读反馈（UI 更新）
+let feedbackCheckInterval = null;
+
+function startFeedbackCheck() {
+  stopFeedbackCheck();
+  feedbackCheckInterval = setInterval(() => {
+    if (isAdmin) {
+      checkNewFeedback();
+      // 后台静默同步远程数据
+      fetchRemoteFeedback().then(() => {
+        if (isAdmin) checkNewFeedback();
+      });
+    }
+  }, 5000);
+}
+
+function stopFeedbackCheck() {
+  if (feedbackCheckInterval) {
+    clearInterval(feedbackCheckInterval);
+    feedbackCheckInterval = null;
+  }
+}
+
 function checkNewFeedback() {
   const notif = document.getElementById('devNotification');
   const usernameDisplay = document.getElementById('usernameDisplay');
 
   if (!isAdmin) {
     if (notif) notif.style.display = 'none';
+    if (usernameDisplay && currentUser === ADMIN_USERNAME) {
+      usernameDisplay.textContent = '👤 管理 (管理员)';
+    }
     return;
   }
   const unread = getUnreadFeedbackCount();
@@ -1282,7 +1383,6 @@ function checkNewFeedback() {
       document.getElementById('devNotifText').textContent = `📩 有 ${unread} 条新反馈！`;
       notif.style.display = 'block';
     }
-    // 同时在用户名旁显示提示
     if (usernameDisplay) {
       usernameDisplay.textContent = `👤 管理 (管理员) 📩${unread}条新反馈`;
     }
@@ -1296,7 +1396,6 @@ function checkNewFeedback() {
 
 // 点击通知查看反馈
 document.getElementById('devNotification').addEventListener('click', () => {
-  // 只有管理员才能查看
   if (!isAdmin) {
     alert('只有管理员可以查看反馈');
     return;
@@ -1307,7 +1406,7 @@ document.getElementById('devNotification').addEventListener('click', () => {
     return;
   }
 
-  let msg = `共 ${feedbackList.length} 条反馈：\n\n`;
+  let msg = `共 ${feedbackList.length} 条反馈（跨设备 ${feedbackKvAvailable ? '已同步' : '仅本机'}）：\n\n`;
   feedbackList.slice(-10).reverse().forEach((f, i) => {
     const time = new Date(f.time).toLocaleString('zh-CN');
     msg += `[${time}] 用户: ${f.username}\n`;
@@ -1318,20 +1417,32 @@ document.getElementById('devNotification').addEventListener('click', () => {
   alert(msg);
   markFeedbackAsRead();
   document.getElementById('devNotification').style.display = 'none';
+  // 更新用户名显示
+  const usernameDisplay = document.getElementById('usernameDisplay');
+  if (usernameDisplay && currentUser === ADMIN_USERNAME) {
+    usernameDisplay.textContent = '👤 管理 (管理员)';
+  }
 });
 
 // 页面加载时检查新反馈
-setTimeout(checkNewFeedback, 1000);
+setTimeout(() => {
+  checkNewFeedback();
+  // 启动后台同步
+  startFeedbackCheck();
+  // 首次加载静默同步远程
+  fetchRemoteFeedback().then(() => {
+    if (isAdmin) checkNewFeedback();
+  });
+}, 1000);
 
 // ==================== 开发者命令 ====================
-// 在控制台输入 showFeedback() 查看所有反馈
 window.showFeedback = function() {
   if (!isAdmin) {
     console.log('只有管理员可以查看反馈');
     return '权限不足';
   }
   const feedbackList = getAllFeedback();
-  console.log('=== 所有反馈 ===');
+  console.log(`=== 所有反馈（${feedbackKvAvailable ? '跨设备已同步' : '仅本机'}）===`);
   feedbackList.forEach((f, i) => {
     console.log(`${i+1}. [${new Date(f.time).toLocaleString('zh-CN')}] 用户: ${f.username}`);
     console.log(`   关卡: ${f.level} 得分: ${f.score}`);
@@ -1340,7 +1451,6 @@ window.showFeedback = function() {
   return `共 ${feedbackList.length} 条反馈`;
 };
 
-// 清空反馈
 window.clearFeedback = clearAllFeedback;
 
 // 查看所有用户数据（管理员）
