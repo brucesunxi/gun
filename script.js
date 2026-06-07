@@ -1014,9 +1014,16 @@ function renderLevelSelector(){
   for (let i = 1; i <= 55; i++) {
     const lvl = levelSystem.getConfig(i);
     const btn=document.createElement('button');
-    btn.className='level-btn'+(i<=game.unlockedLevel?' unlocked':'')+(i===game.currentLevel?' active':'');
-    btn.textContent=i;
-    btn.disabled=i>game.unlockedLevel;
+    const unlocked = i <= game.unlockedLevel;
+    const isBoss = lvl.hasBoss;
+    btn.className='level-btn'
+      +(unlocked?' unlocked':'')
+      +(i===game.currentLevel?' active':'')
+      +(isBoss?' boss-level':'');
+    // Boss关显示 👑 标记，普通关显示编号
+    btn.innerHTML = isBoss ? `<span>${i}</span><span class="boss-icon">👑</span>` : `${i}`;
+    btn.disabled=!unlocked;
+    btn.title = unlocked ? `第${i}关: ${lvl.name} — ${lvl.desc}` : `第${i}关 (未解锁)`;
     btn.onclick=()=>selectLevel(i);
     grid.appendChild(btn);
   }
@@ -1026,7 +1033,8 @@ function updateLevelInfo(){
   const info=document.getElementById('levelInfo');
   if(info){
     const cfg=levelSystem.getCurrent();
-    info.textContent='第'+cfg.level+'关: '+cfg.name+' — '+cfg.desc;
+    const bossTag = cfg.hasBoss ? ' <span class="lvl-boss">👑 BOSS</span>' : '';
+    info.innerHTML = `<span class="lvl-name">第${cfg.level}关 · ${cfg.name}</span><br><span class="lvl-desc">${cfg.desc}</span>${bossTag}`;
   }
 }
 function updateLevelUI(){
