@@ -1198,6 +1198,25 @@ document.getElementById('setPasswordBtn').addEventListener('click', async () => 
     return;
   }
 
+  // 检查用户名是否已被使用
+  const existingUsers = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
+  if (existingUsers[regUser]) {
+    errorEl.textContent = '该用户名已被使用，请更换';
+    return;
+  }
+
+  // 检查云端是否已有该用户
+  try {
+    const res = await fetch('/api/users');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.ok && json.data && json.data[regUser]) {
+        errorEl.textContent = '该用户名已被使用，请更换';
+        return;
+      }
+    }
+  } catch (e) { /* 网络错误继续本地检查 */ }
+
   // 检查用户是否被封禁
   const isBanned = await checkUserBanned(regUser);
   if (isBanned) {
@@ -1234,6 +1253,25 @@ document.getElementById('setUsernameBtn').addEventListener('click', async () => 
     errorEl.textContent = '用户名不能超过20位字符';
     return;
   }
+
+  // 检查用户名是否已被使用（非当前用户）
+  const existingUsers = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
+  if (existingUsers[username] && username !== currentUser) {
+    errorEl.textContent = '该用户名已被使用，请更换';
+    return;
+  }
+
+  // 检查云端是否已有该用户
+  try {
+    const res = await fetch('/api/users');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.ok && json.data && json.data[username] && username !== currentUser) {
+        errorEl.textContent = '该用户名已被使用，请更换';
+        return;
+      }
+    }
+  } catch (e) { /* 网络错误继续本地检查 */ }
 
   // 检查用户是否被封禁
   const isBanned = await checkUserBanned(username);
