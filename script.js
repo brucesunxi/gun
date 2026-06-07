@@ -865,6 +865,8 @@ let touchTargetX = null;
 let touchDirLeft = false;
 let touchDirRight = false;
 document.getElementById('touchZoomBtn').addEventListener('click',()=>{game.zoomed=!game.zoomed;keys.zoom=game.zoomed;});
+const touchZoomEl = document.getElementById('touchZoom');
+if (touchZoomEl) touchZoomEl.addEventListener('click',()=>{game.zoomed=!game.zoomed;keys.zoom=game.zoomed;});
 
 // 画布级触摸 - 直接处理射击
 const touchCanvas = document.getElementById('gameCanvas');
