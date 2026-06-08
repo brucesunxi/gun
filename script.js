@@ -194,7 +194,7 @@ const game = {
   particles:[],bullets:[],enemies:[],supplies:[],stars:[],
   shellCasings:[],muzzleFlashes:[],boss:null,bossActive:false,
   aiTeammateEnabled:null,aiTeammate:null,aiTeammateLevel:'mid',
-  rank:'bronze',rankScore:0,
+  rank:'silver',rankScore:0,
   currentLevel:1,unlockedLevel:1,
 };
 
@@ -250,14 +250,16 @@ const levelSystem = {
 // 等级系统
 const rankSystem = {
   levels: [
-    {name:'bronze',title:'🥉 青铜',color:'#cd7f32',next:100,bonus:1},
-    {name:'silver',title:'🥈 白银',color:'#c0c0c0',next:300,bonus:1.1},
-    {name:'gold',title:'🥇 黄金',color:'#ffd700',next:600,bonus:1.2},
-    {name:'platinum',title:'💠 铂金',color:'#e5e4e2',next:1000,bonus:1.3},
-    {name:'diamond',title:'💎 钻石',color:'#00ffff',next:1500,bonus:1.4},
-    {name:'master',title:'👑 大师',color:'#9d00ff',next:2200,bonus:1.5},
-    {name:'legend',title:'🔥 传奇',color:'#ff6600',next:3000,bonus:1.7},
-    {name:'god',title:'⭐ 战神',color:'#ff0000',next:7000,bonus:2}
+    {name:'silver',title:'🥈 白银',color:'#c0c0c0',next:300,bonus:1},
+    {name:'gold',title:'🥇 黄金',color:'#ffd700',next:600,bonus:1.1},
+    {name:'platinum',title:'💠 铂金',color:'#e5e4e2',next:1000,bonus:1.2},
+    {name:'diamond',title:'💎 钻石',color:'#00ffff',next:1500,bonus:1.3},
+    {name:'god',title:'⭐ 战神',color:'#ff0000',next:2500,bonus:1.5},
+    {name:'veteran_1',title:'🎖️ 老兵',color:'#ff6600',next:4000,bonus:1.7},
+    {name:'veteran_2',title:'🎖️ 老兵',color:'#ff6600',next:6000,bonus:1.8},
+    {name:'veteran_3',title:'🎖️ 老兵',color:'#ff6600',next:9000,bonus:1.9},
+    {name:'veteran_4',title:'🎖️ 老兵',color:'#ff6600',next:13000,bonus:2.0},
+    {name:'veteran_5',title:'🎖️ 老兵',color:'#ff6600',next:18000,bonus:2.1},
   ],
   getCurrent(){return this.levels.find(l=>l.name===game.rank)||this.levels[0];},
   getNext(){const idx=this.levels.findIndex(l=>l.name===game.rank);return this.levels[Math.min(idx+1,this.levels.length-1)];},
@@ -620,11 +622,11 @@ function drawAITeammateHpBar(){
   if(!aiTeammate.active)return;
   const barW=100,barH=6,bx=W-130,by=H-38;
   ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(bx-1,by-1,barW+2,barH+2);
-  const r=aiTeammate.hp/aiTeammate.maxHp;
+  const r=Math.max(0, Math.min(1, aiTeammate.hp/aiTeammate.maxHp));
   ctx.fillStyle=r>0.5?'#44cc44':r>0.25?'#cccc44':'#ff4444';
   ctx.fillRect(bx,by,barW*r,barH);
   ctx.fillStyle='#fff';ctx.font='9px sans-serif';ctx.textAlign='center';
-  ctx.fillText('🤖 '+Math.ceil(aiTeammate.hp),bx+barW/2,by+7);
+  ctx.fillText('🤖 '+Math.ceil(aiTeammate.hp)+'/'+aiTeammate.maxHp,bx+barW/2,by+7);
 }
 
 function resetGame() {
@@ -636,7 +638,6 @@ function resetGame() {
   game.aiTeammateEnabled=document.getElementById('aiTeammateLow').classList.contains('active')?'low':(document.getElementById('aiTeammateHigh').classList.contains('active')?'high':(document.getElementById('aiTeammateMid').classList.contains('active')?'mid':null));
   game.totalEnemies=game.trainingMode?20:cfg.enemies;
   game.score=0;game.lives=3;game.kills=0;game.enemiesSpawned=0;game.shotsFired=0;game.hits=0;game.combo=0;game.maxCombo=0;
-  game.rank='bronze';game.rankScore=0;
   game.frame=0;game.particles=[];game.bullets=[];game.enemies=[];game.supplies=[];game.shellCasings=[];game.muzzleFlashes=[];
   game.screenShake=0;game.enemySpawnTimer=0;game.enemySpawnInterval=game.trainingMode?90:cfg.spawnInterval;
   game.maxEnemiesOnScreen=game.trainingMode?6:Math.min(4,Math.ceil(cfg.enemies/3));
@@ -732,7 +733,7 @@ function drawBossHpBar() {
   ctx.fillStyle=b.phase===2?'#ff4444':'#ffaa00';ctx.font='bold 11px "Courier New",monospace';ctx.textAlign='center';
   ctx.fillText(b.phase===2?'⚡ BOSS 暴走模式 ⚡':'\u{1F451} BOSS',W/2,by-4);
   ctx.fillStyle='rgba(0,0,0,0.6)';ctx.beginPath();ctx.roundRect(bx-2,by+2,barW+4,barH+4,4);ctx.fill();
-  const r=b.hp/b.maxHp,grad=ctx.createLinearGradient(bx,by+4,bx+barW*r,by+4);
+  const r=Math.max(0, Math.min(1, b.hp/b.maxHp)),grad=ctx.createLinearGradient(bx,by+4,bx+barW,by+4);
   grad.addColorStop(0,'#ff4444');grad.addColorStop(0.5,'#ff8800');grad.addColorStop(1,'#ffcc00');
   ctx.fillStyle=grad;ctx.beginPath();ctx.roundRect(bx,by+4,barW*r,barH,3);ctx.fill();
   ctx.fillStyle='#fff';ctx.font='10px "Courier New",monospace';ctx.textAlign='center';ctx.fillText(Math.ceil(b.hp)+' / '+b.maxHp,W/2,by+15);
@@ -997,7 +998,10 @@ document.getElementById('modeTrainBtn').addEventListener('click',()=>setMode(fal
 document.getElementById('startBtn').addEventListener('click',()=>{initAudio();startScreen.style.display='none';game.started=true;var fb=document.getElementById('feedbackBtn');if(fb){fb.style.setProperty('display','block','important');fb.style.visibility='visible';}resetGame();if(bgmEnabled)bgm.start();syncBgmToggleUI();setTimeout(fitGame,50);gameLoop();});
 document.getElementById('restartBtn').addEventListener('click',()=>{gameOverScreen.style.display='none';resetGame();});
 document.getElementById('victoryRestartBtn').addEventListener('click',()=>{victoryScreen.style.display='none';resetGame();});
-function goToMenu(){gameOverScreen.style.display='none';victoryScreen.style.display='none';game.started=false;game.running=false;bgm.stop();startScreen.style.display='flex';updateUsernameDisplay();renderLevelSelector();hideGameUI();}
+function goToMenu(){
+  saveCurrentRank();
+  gameOverScreen.style.display='none';victoryScreen.style.display='none';game.started=false;game.running=false;bgm.stop();startScreen.style.display='flex';updateUI();updateUsernameDisplay();renderLevelSelector();hideGameUI();
+}
 document.getElementById('gameOverMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('victoryMenuBtn').addEventListener('click',goToMenu);
 document.getElementById('trainExitBtn').addEventListener('click',goToMenu);
@@ -1103,7 +1107,7 @@ function getUserData(username) {
     gamesWon: 0,
     unlockedLevel: 1,
     currentLevel: 1,
-    rank: 'bronze',
+    rank: 'silver',
     rankScore: 0,
     playHistory: []
   };
@@ -1156,6 +1160,15 @@ function recordGameResult(score, won, level) {
   // 保存进度
   userData.unlockedLevel = game.unlockedLevel;
   userData.currentLevel = game.currentLevel;
+  userData.rank = game.rank;
+  userData.rankScore = game.rankScore;
+  saveUserData(currentUser, userData);
+}
+
+// 保存当前段位进度（在退出游戏或关闭浏览器时调用）
+function saveCurrentRank() {
+  if (!currentUser) return;
+  const userData = getUserData(currentUser);
   userData.rank = game.rank;
   userData.rankScore = game.rankScore;
   saveUserData(currentUser, userData);
@@ -1762,7 +1775,7 @@ function renderAdminUsers() {
     html += `<div class="admin-user-item" style="position:relative;${isBanned?'opacity:0.5;':''}">
       <span class="u-name">${escHtml(u.username || '未知')}</span>
       <div class="u-stats">🏆 总分 ${u.totalScore || 0} · 最高 ${u.highScore || 0} · 🎮 ${u.gamesPlayed || 0}场（${winRate}%胜率）</div>
-      <div class="u-stats">📈 ${u.rank || 'bronze'} · 解锁至第${u.unlockedLevel || 1}关 ${banText}</div>
+      <div class="u-stats">📈 ${u.rank || 'silver'} · 解锁至第${u.unlockedLevel || 1}关 ${banText}</div>
       <div class="u-actions" style="position:absolute;top:4px;right:4px;display:flex;gap:4px;">
         ${isBanned
           ? `<button class="u-btn unban" data-user="${escHtml(u.username)}">✅ 解封</button>`
@@ -1842,7 +1855,7 @@ function banUser(username, days) {
   // 本地封禁（如果不存在则创建基本数据）
   const allData = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
   if (!allData[username]) {
-    allData[username] = { username: username, totalScore: 0, highScore: 0, gamesPlayed: 0, gamesWon: 0, unlockedLevel: 1, currentLevel: 1, rank: 'bronze', rankScore: 0 };
+    allData[username] = { username: username, totalScore: 0, highScore: 0, gamesPlayed: 0, gamesWon: 0, unlockedLevel: 1, currentLevel: 1, rank: 'silver', rankScore: 0 };
   }
   allData[username].banned = true;
   allData[username].banExpiry = Date.now() + days * 24 * 60 * 60 * 1000;
@@ -1996,6 +2009,9 @@ window.resetAll = function() {
     location.reload();
   }
 };
+
+// 关闭浏览器或刷新页面时保存段位
+window.addEventListener('beforeunload', saveCurrentRank);
 
 // 页面加载时检查密码
 checkPassword();
