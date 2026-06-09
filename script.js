@@ -194,7 +194,7 @@ const game = {
   particles:[],bullets:[],enemies:[],supplies:[],stars:[],
   shellCasings:[],muzzleFlashes:[],boss:null,bossActive:false,
   aiTeammateEnabled:null,aiTeammate:null,aiTeammateLevel:'mid',
-  rank:'silver',rankScore:0,
+  rank:'silver',rankScore:0,consecutiveLosses:0,
   currentLevel:1,unlockedLevel:1,
 };
 
@@ -476,6 +476,8 @@ function checkBossDefeated() {
     victoryScreen.style.display='flex';
     createExplosion(W/2,H/3,'#ff4400',60);createExplosion(W/2-50,H/3+30,'#ff8800',40);createExplosion(W/2+50,H/3-20,'#ffcc00',30);
     game.screenShake=0;playSound('victory');
+    // 胜利重置连输计数
+    game.consecutiveLosses=0;
     recordGameResult(game.score, true, game.currentLevel);
     unlockNextLevel();
   } else {
@@ -487,7 +489,29 @@ function gameOver() {
   game.diedThisRound=true;  // 标记本局战死
   finalScore.textContent=game.score;finalKills.textContent=game.kills;finalTotal.textContent=game.totalEnemies;
   gameOverScreen.style.display='flex';createExplosion(player.x,player.y,'#ff0000',40);game.screenShake=0;playSound('gameover');
+  // 连输计数+1，检查是否降级
+  game.consecutiveLosses++;
+  checkRankDemotion();
   recordGameResult(game.score, false, game.currentLevel);
+}
+// 检查段位降级（连输3次降级）
+function checkRankDemotion() {
+  if (game.consecutiveLosses < 3) return;
+  // 找到当前段位的索引
+  const idx = rankSystem.levels.findIndex(l => l.name === game.rank);
+  if (idx <= 0) return; // 已经是最高级，无法降级
+  // 降级到上一个段位
+  const demoted = rankSystem.levels[idx - 1];
+  game.rank = demoted.name;
+  // 段位积分也相应减少（取降级后段位的门槛）
+  game.rankScore = demoted.next;
+  // 重置连输计数
+  game.consecutiveLosses = 0;
+  // 显示降级提示
+  waveInfo.textContent = '📉 降级！' + demoted.title;
+  waveInfo.style.color = demoted.color;
+  waveInfo.style.opacity = '1';
+  setTimeout(() => { waveInfo.style.opacity = '0'; waveInfo.style.color = '#ffd700'; }, 2000);
 }
 function playerTakeDamage(dmg) {
   if(player.invincible>0||game.trainingMode)return;
@@ -1109,6 +1133,7 @@ function getUserData(username) {
     currentLevel: 1,
     rank: 'silver',
     rankScore: 0,
+    consecutiveLosses: 0,
     playHistory: []
   };
 }
@@ -1134,8 +1159,9 @@ function setCurrentUser(username) {
   const userData = getUserData(username);
   game.unlockedLevel = userData.unlockedLevel;
   game.currentLevel = userData.currentLevel;
-  game.rank = userData.rank;
-  game.rankScore = userData.rankScore;
+  game.rank = userData.rank || 'silver';
+  game.rankScore = userData.rankScore || 0;
+  game.consecutiveLosses = userData.consecutiveLosses || 0;
   // 保存用户数据到本地和云端
   saveUserData(username, userData);
 }
@@ -1162,6 +1188,7 @@ function recordGameResult(score, won, level) {
   userData.currentLevel = game.currentLevel;
   userData.rank = game.rank;
   userData.rankScore = game.rankScore;
+  userData.consecutiveLosses = game.consecutiveLosses;
   saveUserData(currentUser, userData);
 }
 
@@ -1171,6 +1198,7 @@ function saveCurrentRank() {
   const userData = getUserData(currentUser);
   userData.rank = game.rank;
   userData.rankScore = game.rankScore;
+  userData.consecutiveLosses = game.consecutiveLosses;
   saveUserData(currentUser, userData);
 }
 
@@ -1855,7 +1883,7 @@ function banUser(username, days) {
   // 本地封禁（如果不存在则创建基本数据）
   const allData = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
   if (!allData[username]) {
-    allData[username] = { username: username, totalScore: 0, highScore: 0, gamesPlayed: 0, gamesWon: 0, unlockedLevel: 1, currentLevel: 1, rank: 'silver', rankScore: 0 };
+    allData[username] = { username: username, totalScore: 0, highScore: 0, gamesPlayed: 0, gamesWon: 0, unlockedLevel: 1, currentLevel: 1, rank: 'silver', rankScore: 0, consecutiveLosses: 0 };
   }
   allData[username].banned = true;
   allData[username].banExpiry = Date.now() + days * 24 * 60 * 60 * 1000;
