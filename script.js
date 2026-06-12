@@ -97,6 +97,8 @@ function shootSound() {
   if (player.weapon === 'pistol') playSound('pistol');
   else if (player.weapon === 'rifle') playSound('rifle');
   else if (player.weapon === 'shotgun') playSound('shotgun');
+  else if (player.weapon === 'staff') playSound('sniper');
+  else if (player.weapon === 'laser') playSound('rifle');
   else playSound('sniper');
 }
 soundToggle.addEventListener('click', () => { soundEnabled=!soundEnabled; soundToggle.textContent=soundEnabled?'\u{1F50A} 音效':'\u{1F507} 静音'; });
@@ -195,6 +197,8 @@ const game = {
   shellCasings:[],muzzleFlashes:[],boss:null,bossActive:false,
   aiTeammateEnabled:null,aiTeammate:null,aiTeammateLevel:'mid',
   currentLevel:1,unlockedLevel:1,
+  coins:0,purchasedItems:[],
+  meleeSwingTimer:0,
 };
 
 // 55关系统（1-11手动设计，12-55自动生成）
@@ -297,10 +301,19 @@ const shopItems = [
   {id:'heal',name:'❤️ 医疗包',desc:'恢复 50 HP',price:30,max:99,bought:0,apply() { player.hp=Math.min(player.maxHp,player.hp+50); }},
   {id:'armor',name:'\u{1F6E1}️ 护甲',desc:'伤害减免 15%',price:70,max:99,bought:0,apply() { player.armor=Math.min(0.6,player.armor+0.15); }},
 ];
+// 永久物品（用金币购买，全局保存）
+const permanentItems = [
+  {id:'staff',name:'\u{1F3AF} 金箍棒',desc:'范围近战 · 55伤害',price:200},
+  {id:'laser',name:'\u{1F52B} 激光枪',desc:'快速穿刺 · 15伤害',price:200},
+];
+function equipPermanentWeapon(id) {
+  const w={staff:{text:'\u{1F3AF} 金箍棒 (55·近战)'},laser:{text:'\u{1F52B} 激光枪 (15·穿刺)'}};
+  if(w[id]){player.weapon=id;weaponInfo.textContent=w[id].text;}
+}
 function openShop() { if (game.trainingMode||game.over||game.won||!game.running) return; game.shopOpen=true; game.running=false; document.getElementById('shopOverlay').classList.add('open'); renderShopItems(); }
 function closeShop() { game.shopOpen=false; game.running=true; document.getElementById('shopOverlay').classList.remove('open'); }
 function renderShopItems() {
-  document.getElementById('shopCoin').textContent=game.score;
+  document.getElementById('shopCoin').textContent='\u{1F4B0} '+game.score+'  |  \u{1FA99} '+game.coins;
   const c=document.getElementById('shopItems'); c.innerHTML='';
   shopItems.forEach(item => {
     const ok=!item.prereq||item.prereq();
@@ -315,6 +328,20 @@ function renderShopItems() {
     const ps=document.createElement('span'); ps.className='price'+(canAfford?' afford':''); ps.textContent=!canBuy?'✓':'$'+item.price;
     div.appendChild(ns); div.appendChild(ds); div.appendChild(ps);
     if (canAfford) div.addEventListener('click',()=>{ if(game.score<item.price)return; game.score-=item.price; item.apply(); if(isWeapon) item.bought=true; else item.bought=(item.bought||0)+1; updateUI(); renderShopItems(); });
+    c.appendChild(div);
+  });
+  // 分隔线 + 永久物品区
+  const sep=document.createElement('div'); sep.className='shop-sep'; sep.textContent='—— 永久物品 ——'; c.appendChild(sep);
+  permanentItems.forEach(item => {
+    const owned=game.purchasedItems.includes(item.id);
+    const canAfford=game.coins>=item.price&&!owned;
+    const div=document.createElement('div'); div.className='shop-item'+(owned?' bought permanent':' permanent');
+    const ns=document.createElement('span'); ns.className='name'; ns.textContent=item.name;
+    const ds=document.createElement('span'); ds.className='desc'; ds.textContent=item.desc+(owned?' (已拥有)':'');
+    const ps=document.createElement('span'); ps.className='price'+(canAfford?' afford':''); ps.textContent=owned?'\u{2713}':'\u{1FA99}'+item.price;
+    div.appendChild(ns); div.appendChild(ds); div.appendChild(ps);
+    if(canAfford) div.addEventListener('click',()=>{game.coins-=item.price;game.purchasedItems.push(item.id);equipPermanentWeapon(item.id);updateUI();renderShopItems();if(currentUser){const d=getUserData(currentUser);d.coins=game.coins;d.purchasedItems=game.purchasedItems;saveUserData(currentUser,d);}});
+    else if(owned) div.addEventListener('click',()=>{equipPermanentWeapon(item.id);renderShopItems();});
     c.appendChild(div);
   });
 }
@@ -363,6 +390,41 @@ function shoot() {
   } else if(player.weapon==='sniper') {
     game.bullets.push({x:cx,y:cy-10,vx:rand(-0.1,0.1),vy:-14,damage:Math.round(60*dmg),w:4,h:18,color:'#ff6666',trail:[]});
     player.shootCooldown=Math.round(35*cd);
+  } else if(player.weapon==='staff') {
+    // 金箍棒：范围近战攻击
+    const range=200,halfW=60;
+    for(let i=game.enemies.length-1;i>=0;i--){
+      const e=game.enemies[i];
+      if(e.isTarget) continue;
+      const dx=e.x-player.x,dy=e.y-player.y;
+      if(dy>-range&&dy<20&&Math.abs(dx)<halfW){
+        e.hp-=Math.round(55*dmg);
+        createExplosion(e.x,e.y,'#ffd700',10);
+        playSound('enemy_hit');
+        if(e.hp<=0){
+          addScore(10);game.kills++;createExplosion(e.x,e.y,'#ffaa00',30);
+          playSound('explosion');
+          if(Math.random()<0.15)spawnSupply();
+          game.enemies.splice(i,1);updateUI();
+          if(game.kills>=game.totalEnemies&&!game.bossActive&&!game.trainingMode)triggerBoss();
+        }
+      }
+    }
+    if(game.bossActive&&game.boss){
+      const b=game.boss;
+      if(b.y-player.y>-range&&b.y-player.y<20&&Math.abs(b.x-player.x)<halfW){
+        b.hp-=Math.round(55*dmg*0.8);
+        createExplosion(b.x,b.y,'#ffd700',15);
+        playSound('enemy_hit');
+        if(b.hp<=0){b.hp=0;addScore(50);checkBossDefeated();}
+      }
+    }
+    game.meleeSwingTimer=10;
+    player.shootCooldown=Math.round(22*cd);
+  } else if(player.weapon==='laser') {
+    // 激光枪：快速穿刺射击
+    game.bullets.push({x:cx,y:cy-10,vx:0,vy:-16,damage:Math.round(15*dmg),w:3,h:24,color:'#ff0044',trail:[],piercing:true});
+    player.shootCooldown=Math.round(5*cd);
   }
   shootSound(); createMuzzleFlash(cx,cy-8);
   game.shellCasings.push({x:cx,y:cy,vx:rand(-1,1),vy:rand(-2,-1),life:40,rotation:0});
@@ -381,6 +443,7 @@ function triggerBoss() {
     createExplosion(W/2,H/3,'#ffd700',50);
     playSound('victory');
     recordGameResult(game.score, true, game.currentLevel);
+    document.getElementById('vicCoins').textContent = awardCoins(game.score, true, game.currentLevel);
     unlockNextLevel();
     return;
   }
@@ -405,6 +468,7 @@ function triggerBoss() {
     createExplosion(W/2,H/3,'#ff4400',60);createExplosion(W/2-50,H/3+30,'#ff8800',40);createExplosion(W/2+50,H/3-20,'#ffcc00',30);
     game.screenShake=0;playSound('victory');
     recordGameResult(game.score, true, game.currentLevel);
+    document.getElementById('vicCoins').textContent = awardCoins(game.score, true, game.currentLevel);
     unlockNextLevel();
     return;
   }
@@ -449,6 +513,7 @@ function checkBossDefeated() {
     game.screenShake=0;playSound('victory');
     // 胜利重置连输计数
     recordGameResult(game.score, true, game.currentLevel);
+    document.getElementById('vicCoins').textContent = awardCoins(game.score, true, game.currentLevel);
     unlockNextLevel();
   } else {
     setTimeout(()=>{triggerBoss();},2000);
@@ -459,6 +524,8 @@ function gameOver() {
   game.diedThisRound=true;  // 标记本局战死
   finalScore.textContent=game.score;finalKills.textContent=game.kills;finalTotal.textContent=game.totalEnemies;
   gameOverScreen.style.display='flex';createExplosion(player.x,player.y,'#ff0000',40);game.screenShake=0;playSound('gameover');
+  const coinsEarned = awardCoins(game.score, false, game.currentLevel);
+  document.getElementById('finalCoins').textContent = coinsEarned;
   recordGameResult(game.score, false, game.currentLevel);
 }
 function playerTakeDamage(dmg) {
@@ -469,6 +536,12 @@ function playerTakeDamage(dmg) {
 }
 function addScore(points){
   game.score+=points;
+}
+// 金币奖励：根据本局表现给予金币
+function awardCoins(score, won, level) {
+  const earned = Math.max(won ? 5 : 1, Math.floor(score / (won ? 10 : 20)));
+  game.coins += earned;
+  return earned;
 }
 function updateUI() {
   scoreEl.textContent=game.score;livesEl.textContent=game.lives;killsEl.textContent=game.kills;
@@ -690,7 +763,37 @@ function drawBossHpBar() {
 function drawExplosions() { for(const p of game.particles){ctx.globalAlpha=p.life/p.maxLife;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size*(p.life/p.maxLife),0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1; }
 function drawMuzzleFlashes() { for(const f of game.muzzleFlashes){const a=f.life/f.maxLife;ctx.globalAlpha=a;ctx.fillStyle='#ffff88';ctx.beginPath();ctx.arc(f.x,f.y,f.size*a,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffaa44';ctx.beginPath();ctx.arc(f.x,f.y,f.size*a*0.6,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1; }
 function drawBullets() {
-  for(const b of game.bullets){for(let i=0;i<b.trail.length;i++){ctx.globalAlpha=(i/b.trail.length)*0.5;ctx.fillStyle=b.color;ctx.fillRect(b.trail[i].x,b.trail[i].y,b.w,b.h);}ctx.globalAlpha=1;ctx.fillStyle=b.color;ctx.shadowBlur=8;ctx.shadowColor=b.color;if(b.enemyBullet){ctx.beginPath();ctx.arc(b.x,b.y,3,0,Math.PI*2);ctx.fill();}else{ctx.fillRect(b.x-b.w/2,b.y-b.h/2,b.w,b.h);}ctx.shadowBlur=0;}
+  for(const b of game.bullets){
+    if(b.piercing){
+      ctx.save();
+      ctx.shadowBlur=20;ctx.shadowColor='#ff0044';
+      ctx.fillStyle='#ff0044';ctx.fillRect(b.x-2,b.y-14,4,28);
+      ctx.fillStyle='#ff88aa';ctx.fillRect(b.x-1,b.y-12,2,24);
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(b.x,b.y,3,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+      continue;
+    }
+    for(let i=0;i<b.trail.length;i++){ctx.globalAlpha=(i/b.trail.length)*0.5;ctx.fillStyle=b.color;ctx.fillRect(b.trail[i].x,b.trail[i].y,b.w,b.h);}ctx.globalAlpha=1;ctx.fillStyle=b.color;ctx.shadowBlur=8;ctx.shadowColor=b.color;if(b.enemyBullet){ctx.beginPath();ctx.arc(b.x,b.y,3,0,Math.PI*2);ctx.fill();}else{ctx.fillRect(b.x-b.w/2,b.y-b.h/2,b.w,b.h);}ctx.shadowBlur=0;
+  }
+}
+function drawMeleeSwing() {
+  if(game.meleeSwingTimer<=0)return;
+  const t=game.meleeSwingTimer/10, cx=player.x, cy=player.y-20;
+  ctx.save();
+  ctx.globalAlpha=t;
+  ctx.shadowColor='#ffd700';ctx.shadowBlur=30;
+  const grad=ctx.createRadialGradient(cx,cy-60,5,cx,cy-60,120);
+  grad.addColorStop(0,'rgba(255,215,0,0.8)');grad.addColorStop(0.5,'rgba(255,200,0,0.3)');grad.addColorStop(1,'rgba(255,200,0,0)');
+  ctx.fillStyle=grad;ctx.fillRect(cx-80,cy-180,160,180);
+  ctx.shadowBlur=20;
+  ctx.fillStyle='#ffd700';
+  ctx.fillRect(cx-4,cy-160,8,160);
+  ctx.fillStyle='#fff';
+  ctx.fillRect(cx-2,cy-160,4,160);
+  ctx.fillStyle='#ff8c00';
+  ctx.fillRect(cx-8,cy-165,16,10);
+  ctx.fillRect(cx-8,cy-5,16,10);
+  ctx.restore();
 }
 function drawSupplies() {
   for(const s of game.supplies){const bob=Math.sin(game.frame*0.05+s.bobPhase)*3;ctx.shadowBlur=15;ctx.shadowColor='#ffd700';ctx.fillStyle='#8a6a2a';ctx.fillRect(s.x-14,s.y+bob-10,28,20);ctx.fillStyle='#6a4a1a';ctx.fillRect(s.x-14,s.y+bob-10,28,4);ctx.fillRect(s.x-14,s.y+bob+6,28,4);ctx.fillStyle='#ffd700';ctx.font='16px sans-serif';ctx.textAlign='center';ctx.fillText('\u{1F4E6}',s.x,s.y+bob+6);ctx.shadowBlur=0;}
@@ -760,15 +863,16 @@ function update() {
     const b=game.bullets[i];b.trail.push({x:b.x,y:b.y});if(b.trail.length>5)b.trail.shift();b.x+=b.vx;b.y+=b.vy;
     if(b.x<-20||b.x>W+20||b.y<-20||b.y>H+20){game.bullets.splice(i,1);continue;}
     if(b.enemyBullet){if(dist(b,player)<15){playerTakeDamage(b.damage);game.bullets.splice(i,1);createExplosion(b.x,b.y,'#ff4444',5);continue;}if(aiTeammate.active&&dist(b,aiTeammate)<15){aiTeammateTakeDamage(b.damage);game.bullets.splice(i,1);createExplosion(b.x,b.y,'#ff4444',5);continue;}}
-    else if(game.bossActive&&game.boss&&Math.abs(b.x-game.boss.x)<game.boss.w*0.5&&Math.abs(b.y-game.boss.y)<game.boss.h*0.5){game.boss.hp-=b.damage*0.8;game.bullets.splice(i,1);createExplosion(b.x,b.y,'#ff8800',8);playSound('enemy_hit');if(game.boss.hp<=0){game.boss.hp=0;addScore(50);checkBossDefeated();}}
-    else{for(let j=game.enemies.length-1;j>=0;j--){const e=game.enemies[j],hw=e.isTarget?e.w*0.5:20,hh=e.isTarget?e.h*0.5:25;if(Math.abs(b.x-e.x)<hw&&Math.abs(b.y-e.y)<hh){e.hp-=b.damage;game.bullets.splice(i,1);if(e.isTarget){game.hits++;if(e.hp<=0){game.combo++;if(game.combo>game.maxCombo)game.maxCombo=game.combo;addScore(Math.round(e.points*(1+Math.floor(game.combo/5)*0.5)));game.kills++;createExplosion(e.x,e.y,'#88ddff',15);playSound('explosion');if(game.combo>1){waveInfo.textContent='\u{1F525} '+game.combo+' 连击！';waveInfo.style.opacity='1';setTimeout(()=>{waveInfo.style.opacity='0';},1000);}game.enemies.splice(j,1);updateTrainingStats();}else{createExplosion(b.x,b.y,'#88ddff',5);playSound('enemy_hit');}}else{createExplosion(b.x,b.y,'#ffaa44',5);playSound('enemy_hit');if(e.hp<=0){addScore(10);game.kills++;createExplosion(e.x,e.y,'#ff6600',25);playSound('explosion');if(Math.random()<0.15)spawnSupply();game.enemies.splice(j,1);updateUI();if(game.kills>=game.totalEnemies&&!game.bossActive&&!game.trainingMode)triggerBoss();}}break;}}}
+    else if(game.bossActive&&game.boss&&Math.abs(b.x-game.boss.x)<game.boss.w*0.5&&Math.abs(b.y-game.boss.y)<game.boss.h*0.5){game.boss.hp-=b.damage*0.8;if(!b.piercing)game.bullets.splice(i,1);createExplosion(b.x,b.y,'#ff8800',8);playSound('enemy_hit');if(game.boss.hp<=0){game.boss.hp=0;addScore(50);checkBossDefeated();}}
+    else{for(let j=game.enemies.length-1;j>=0;j--){const e=game.enemies[j],hw=e.isTarget?e.w*0.5:20,hh=e.isTarget?e.h*0.5:25;if(Math.abs(b.x-e.x)<hw&&Math.abs(b.y-e.y)<hh){e.hp-=b.damage;if(!b.piercing)game.bullets.splice(i,1);if(e.isTarget){game.hits++;if(e.hp<=0){game.combo++;if(game.combo>game.maxCombo)game.maxCombo=game.combo;addScore(Math.round(e.points*(1+Math.floor(game.combo/5)*0.5)));game.kills++;createExplosion(e.x,e.y,'#88ddff',15);playSound('explosion');if(game.combo>1){waveInfo.textContent='\u{1F525} '+game.combo+' 连击！';waveInfo.style.opacity='1';setTimeout(()=>{waveInfo.style.opacity='0';},1000);}game.enemies.splice(j,1);updateTrainingStats();}else{createExplosion(b.x,b.y,'#88ddff',5);playSound('enemy_hit');}}else{createExplosion(b.x,b.y,'#ffaa44',5);playSound('enemy_hit');if(e.hp<=0){addScore(10);game.kills++;createExplosion(e.x,e.y,'#ff6600',25);playSound('explosion');if(Math.random()<0.15)spawnSupply();game.enemies.splice(j,1);updateUI();if(game.kills>=game.totalEnemies&&!game.bossActive&&!game.trainingMode)triggerBoss();}}break;}}}
   }
-  for(let i=game.supplies.length-1;i>=0;i--){const s=game.supplies[i];s.y+=s.speed;if(dist(s,player)<28){if(player.weapon==='pistol'){player.weapon='rifle';weaponInfo.textContent='\u{1F52B} 步枪 (25·连发)';}else if(player.weapon==='rifle'){player.weapon='shotgun';weaponInfo.textContent='\u{1F52B} 霰弹枪 (15×6·散射)';}else if(player.weapon==='shotgun'){player.weapon='sniper';weaponInfo.textContent='\\\u{1F3AF} 狙击枪 (60·远程)';}addScore(20);updateUI();playSound('pickup');createExplosion(s.x,s.y,'#ffd700',15);game.supplies.splice(i,1);continue;}if(s.y>H+30)game.supplies.splice(i,1);}
+  for(let i=game.supplies.length-1;i>=0;i--){const s=game.supplies[i];s.y+=s.speed;if(dist(s,player)<28){if(player.weapon==='pistol'){player.weapon='rifle';weaponInfo.textContent='\u{1F52B} 步枪 (25·连发)';}else if(player.weapon==='rifle'){player.weapon='shotgun';weaponInfo.textContent='\u{1F52B} 霰弹枪 (15×6·散射)';}else if(player.weapon==='shotgun'){player.weapon='sniper';weaponInfo.textContent='\u{1F3AF} 狙击枪 (60·远程)';}addScore(20);updateUI();playSound('pickup');createExplosion(s.x,s.y,'#ffd700',15);game.supplies.splice(i,1);continue;}if(s.y>H+30)game.supplies.splice(i,1);}
   for(let i=game.particles.length-1;i>=0;i--){const p=game.particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.1;p.life--;if(p.life<=0)game.particles.splice(i,1);}
   for(let i=game.muzzleFlashes.length-1;i>=0;i--){game.muzzleFlashes[i].life--;if(game.muzzleFlashes[i].life<=0)game.muzzleFlashes.splice(i,1);}
   for(let i=game.shellCasings.length-1;i>=0;i--){const s=game.shellCasings[i];s.x+=s.vx;s.y+=s.vy;s.vy+=0.2;s.rotation+=0.1;s.life--;if(s.life<=0)game.shellCasings.splice(i,1);}
   if(game.screenShake>0)game.screenShake*=0.9;
   if(game.screenShake<0.1)game.screenShake=0;
+  if(game.meleeSwingTimer>0)game.meleeSwingTimer--;
 }
 
 // Render
@@ -779,6 +883,7 @@ function render() {
   drawBackground();drawSupplies();drawBullets();drawShellCasings();
   for(const e of game.enemies){if(e.isTarget)drawTarget(e);else drawSoldier(e.x,e.y,e.w,e.h,e.dir,false,e.hp,e.maxHp,true,0);}
   if(!game.over&&!game.won){drawSoldier(player.x,player.y,player.w,player.h,player.dir,true,player.hp,player.maxHp,player.moving,player.invincible,false);if(aiTeammate.active)drawSoldier(aiTeammate.x,aiTeammate.y,aiTeammate.w,aiTeammate.h,aiTeammate.dir,false,aiTeammate.hp,aiTeammate.maxHp,aiTeammate.moving,aiTeammate.invincible,true);}
+  drawMeleeSwing();
   if(game.bossActive&&game.boss)drawBoss(game.boss);
   drawExplosions();drawMuzzleFlashes();
   ctx.restore();
@@ -968,6 +1073,16 @@ function updateUsernameDisplay() {
   // 管理员后台按钮
   const adminBtn = document.getElementById('adminPanelBtn');
   if (adminBtn) adminBtn.style.display = isAdmin ? '' : 'none';
+  // 更新金币显示
+  const startCoins = document.getElementById('startCoins');
+  if (startCoins) startCoins.textContent = game.coins;
+  // 更新已拥有永久武器显示
+  const ownedEl = document.getElementById('ownedWeapons');
+  if (ownedEl) {
+    const names={staff:'\u{1F3AF}金箍棒',laser:'\u{1F52B}激光枪'};
+    const owned=game.purchasedItems.map(id=>names[id]).filter(Boolean);
+    ownedEl.textContent=owned.length?'\u{1F4E6} 已拥有: '+owned.join('  '):'';
+  }
 }
 
 // ==================== 关卡系统 ====================
@@ -1029,6 +1144,8 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
     const userData = getUserData(currentUser);
     userData.unlockedLevel = game.unlockedLevel;
     userData.currentLevel = game.currentLevel;
+    userData.coins = game.coins;
+    userData.purchasedItems = game.purchasedItems;
     saveUserData(currentUser, userData);
   }
   // 清除当前用户，返回登录界面
@@ -1052,6 +1169,8 @@ function getUserData(username) {
     gamesWon: 0,
     unlockedLevel: 1,
     currentLevel: 1,
+    coins: 0,
+    purchasedItems: [],
     playHistory: []
   };
 }
@@ -1077,6 +1196,8 @@ function setCurrentUser(username) {
   const userData = getUserData(username);
   game.unlockedLevel = userData.unlockedLevel;
   game.currentLevel = userData.currentLevel;
+  game.coins = userData.coins || 0;
+  game.purchasedItems = userData.purchasedItems || [];
   // 保存用户数据到本地和云端
   saveUserData(username, userData);
 }
@@ -1101,6 +1222,8 @@ function recordGameResult(score, won, level) {
   // 保存进度
   userData.unlockedLevel = game.unlockedLevel;
   userData.currentLevel = game.currentLevel;
+  userData.coins = game.coins;
+  userData.purchasedItems = game.purchasedItems;
   saveUserData(currentUser, userData);
 }
 
@@ -1705,7 +1828,7 @@ function renderAdminUsers() {
     html += `<div class="admin-user-item" style="position:relative;${isBanned?'opacity:0.5;':''}">
       <span class="u-name">${escHtml(u.username || '未知')}</span>
       <div class="u-stats">🏆 总分 ${u.totalScore || 0} · 最高 ${u.highScore || 0} · 🎮 ${u.gamesPlayed || 0}场（${winRate}%胜率）</div>
-      <div class="u-stats">解锁至第${u.unlockedLevel || 1}关 ${banText}</div>
+      <div class="u-stats">💰 ${u.coins || 0}金币 · 解锁至第${u.unlockedLevel || 1}关 ${banText}</div>
       <div class="u-actions" style="position:absolute;top:4px;right:4px;display:flex;gap:4px;">
         ${isBanned
           ? `<button class="u-btn unban" data-user="${escHtml(u.username)}">✅ 解封</button>`
@@ -1785,7 +1908,7 @@ function banUser(username, days) {
   // 本地封禁（如果不存在则创建基本数据）
   const allData = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
   if (!allData[username]) {
-    allData[username] = { username: username, totalScore: 0, highScore: 0, gamesPlayed: 0, gamesWon: 0, unlockedLevel: 1, currentLevel: 1 };
+    allData[username] = { username: username, totalScore: 0, highScore: 0, gamesPlayed: 0, gamesWon: 0, unlockedLevel: 1, currentLevel: 1, coins: 0, purchasedItems: [] };
   }
   allData[username].banned = true;
   allData[username].banExpiry = Date.now() + days * 24 * 60 * 60 * 1000;
