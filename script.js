@@ -311,8 +311,29 @@ function equipPermanentWeapon(id) {
   const w={staff:{text:'\u{1F3AF} 金箍棒 (55·近战)'},laser:{text:'\u{1F52B} 激光枪 (15·穿刺)'}};
   if(w[id]){player.weapon=id;weaponInfo.textContent=w[id].text;}
 }
-function openShop() { if (game.trainingMode||game.over||game.won||!game.running) return; game.shopOpen=true; game.running=false; document.getElementById('shopOverlay').classList.add('open'); renderShopItems(); }
-function closeShop() { game.shopOpen=false; game.running=true; document.getElementById('shopOverlay').classList.remove('open'); }
+let permShopOpen=false;
+function openPermanentShop() {
+  permShopOpen=true;
+  document.getElementById('shopOverlay').classList.add('open');
+  renderPermanentShop();
+}
+function renderPermanentShop() {
+  document.getElementById('shopCoin').textContent='\u{1FA99} '+game.coins;
+  const c=document.getElementById('shopItems'); c.innerHTML='';
+  permanentItems.forEach(item => {
+    const owned=game.purchasedItems.includes(item.id);
+    const canAfford=game.coins>=item.price&&!owned;
+    const div=document.createElement('div'); div.className='shop-item'+(owned?' bought permanent':' permanent');
+    const ns=document.createElement('span'); ns.className='name'; ns.textContent=item.name;
+    const ds=document.createElement('span'); ds.className='desc'; ds.textContent=item.desc+(owned?' (已拥有)':'');
+    const ps=document.createElement('span'); ps.className='price'+(canAfford?' afford':''); ps.textContent=owned?'\u{2713}':'\u{1FA99}'+item.price;
+    div.appendChild(ns); div.appendChild(ds); div.appendChild(ps);
+    if(canAfford) div.addEventListener('click',()=>{game.coins-=item.price;game.purchasedItems.push(item.id);renderPermanentShop();updateUsernameDisplay();if(currentUser){const d=getUserData(currentUser);d.coins=game.coins;d.purchasedItems=game.purchasedItems;saveUserData(currentUser,d);}});
+    c.appendChild(div);
+  });
+}
+function openShop() { if (game.trainingMode||game.over||game.won||!game.running) return; permShopOpen=false; game.shopOpen=true; game.running=false; document.getElementById('shopOverlay').classList.add('open'); renderShopItems(); }
+function closeShop() { permShopOpen=false; game.shopOpen=false; game.running=true; document.getElementById('shopOverlay').classList.remove('open'); }
 function renderShopItems() {
   document.getElementById('shopCoin').textContent='\u{1F4B0} '+game.score+'  |  \u{1FA99} '+game.coins;
   const c=document.getElementById('shopItems'); c.innerHTML='';
@@ -331,23 +352,10 @@ function renderShopItems() {
     if (canAfford) div.addEventListener('click',()=>{ if(game.score<item.price)return; game.score-=item.price; item.apply(); if(isWeapon) item.bought=true; else item.bought=(item.bought||0)+1; updateUI(); renderShopItems(); });
     c.appendChild(div);
   });
-  // 分隔线 + 永久物品区
-  const sep=document.createElement('div'); sep.className='shop-sep'; sep.textContent='—— 永久物品 ——'; c.appendChild(sep);
-  permanentItems.forEach(item => {
-    const owned=game.purchasedItems.includes(item.id);
-    const canAfford=game.coins>=item.price&&!owned;
-    const div=document.createElement('div'); div.className='shop-item'+(owned?' bought permanent':' permanent');
-    const ns=document.createElement('span'); ns.className='name'; ns.textContent=item.name;
-    const ds=document.createElement('span'); ds.className='desc'; ds.textContent=item.desc+(owned?' (已拥有)':'');
-    const ps=document.createElement('span'); ps.className='price'+(canAfford?' afford':''); ps.textContent=owned?'\u{2713}':'\u{1FA99}'+item.price;
-    div.appendChild(ns); div.appendChild(ds); div.appendChild(ps);
-    if(canAfford) div.addEventListener('click',()=>{game.coins-=item.price;game.purchasedItems.push(item.id);equipPermanentWeapon(item.id);updateUI();renderShopItems();if(currentUser){const d=getUserData(currentUser);d.coins=game.coins;d.purchasedItems=game.purchasedItems;saveUserData(currentUser,d);}});
-    else if(owned) div.addEventListener('click',()=>{equipPermanentWeapon(item.id);renderShopItems();});
-    c.appendChild(div);
-  });
 }
 document.getElementById('shopBtn').addEventListener('click',openShop);
 document.getElementById('shopCloseBtn').addEventListener('click',closeShop);
+document.getElementById('permShopBtn').addEventListener('click',openPermanentShop);
 
 for (let i=0;i<60;i++) game.stars.push({x:Math.random()*W,y:Math.random()*H*0.6,size:Math.random()*2+0.5,speed:Math.random()*0.3+0.1,alpha:Math.random()*0.5+0.2});
 function rand(m,M){return Math.random()*(M-m)+m;}
@@ -678,6 +686,10 @@ function resetGame() {
   const hpRestore = game.diedThisRound ? 50 : Math.max(10, Math.round(player.maxHp * 0.3));
   player.x=W/2; player.hp=Math.min(player.maxHp, hpRestore); player.weapon='pistol'; player.damageMult=1; player.fireRateMult=1; player.armor=0;
   player.helmetHp=game.purchasedItems.includes('helmet')?51:0;
+  // 自动装备已拥有的永久武器（金箍棒 > 激光枪 > 手枪）
+  if(game.purchasedItems.includes('staff')){player.weapon='staff';weaponInfo.textContent='\u{1F3AF} 金箍棒 (55·近战)';}
+  else if(game.purchasedItems.includes('laser')){player.weapon='laser';weaponInfo.textContent='\u{1F52B} 激光枪 (15·穿刺)';}
+  else{weaponInfo.textContent='\u{1F52B} 手枪 (18伤害)';}
   game.diedThisRound = false;  // 重置标志
   player.invincible=game.trainingMode?9999:60;player.shootCooldown=0;
   if(game.aiTeammateEnabled){initAITeammate(game.aiTeammateEnabled);}
@@ -916,7 +928,7 @@ document.addEventListener('keydown',(e)=>{
   if(e.key==='Shift'&&!keys.zoom){keys.zoom=true;game.zoomed=true;e.preventDefault();}
   if(e.key==='b'||e.key==='B'){if(game.shopOpen)closeShop();else openShop();}
   if(e.key==='Escape'){
-    if(game.shopOpen){closeShop();e.preventDefault();}
+    if(permShopOpen||game.shopOpen){closeShop();e.preventDefault();}
     else if(game.running&&!game.trainingMode){openShop();e.preventDefault();}
     else if(game.trainingMode&&game.running){e.preventDefault();goToMenu();}
   }
