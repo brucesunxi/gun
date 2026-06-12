@@ -283,7 +283,7 @@ function selectLevel(lvl){
 
 const player = {
   x:W/2,y:H-70,w:32,h:44,speed:4,hp:100,maxHp:100,shootCooldown:0,weapon:'pistol',
-  invincible:0,dir:0,moving:false,damageMult:1,fireRateMult:1,armor:0,
+  invincible:0,dir:0,moving:false,damageMult:1,fireRateMult:1,armor:0,helmetHp:0,
 };
 const aiTeammate = {
   x:W/2-60,y:H-70,w:32,h:44,speed:0.9,hp:160,maxHp:160,shootCooldown:0,
@@ -305,6 +305,7 @@ const shopItems = [
 const permanentItems = [
   {id:'staff',name:'\u{1F3AF} 金箍棒',desc:'范围近战 · 55伤害',price:200},
   {id:'laser',name:'\u{1F52B} 激光枪',desc:'快速穿刺 · 15伤害',price:200},
+  {id:'helmet',name:'\u{1F6E1}️ 防护头盔',desc:'吸收51伤害 · 每局重置',price:35},
 ];
 function equipPermanentWeapon(id) {
   const w={staff:{text:'\u{1F3AF} 金箍棒 (55·近战)'},laser:{text:'\u{1F52B} 激光枪 (15·穿刺)'}};
@@ -530,7 +531,15 @@ function gameOver() {
 }
 function playerTakeDamage(dmg) {
   if(player.invincible>0||game.trainingMode)return;
-  dmg=Math.round(dmg*(1-player.armor));player.hp-=dmg;player.invincible=20;game.screenShake=8;playSound('hit');
+  dmg=Math.round(dmg*(1-player.armor));
+  // 防护头盔吸收伤害
+  if(player.helmetHp>0&&dmg>0){
+    const absorbed=Math.min(player.helmetHp,dmg);
+    player.helmetHp-=absorbed;
+    dmg-=absorbed;
+    createExplosion(player.x,player.y-30,'#88ddff',5);
+  }
+  if(dmg>0){player.hp-=dmg;player.invincible=20;game.screenShake=8;playSound('hit');}
   if(player.hp<=0){player.hp=0;gameOver();}
   updateUI();
 }
@@ -668,6 +677,7 @@ function resetGame() {
   // 血量恢复：战死后来一局恢复50点，正常通关恢复30%
   const hpRestore = game.diedThisRound ? 50 : Math.max(10, Math.round(player.maxHp * 0.3));
   player.x=W/2; player.hp=Math.min(player.maxHp, hpRestore); player.weapon='pistol'; player.damageMult=1; player.fireRateMult=1; player.armor=0;
+  player.helmetHp=game.purchasedItems.includes('helmet')?51:0;
   game.diedThisRound = false;  // 重置标志
   player.invincible=game.trainingMode?9999:60;player.shootCooldown=0;
   if(game.aiTeammateEnabled){initAITeammate(game.aiTeammateEnabled);}
@@ -807,6 +817,8 @@ function drawHpBar() {
   const r=Math.max(0, Math.min(1, player.hp/player.maxHp)),grad=ctx.createLinearGradient(bx,by,bx+barW,by);
   grad.addColorStop(0,'#ff4444');grad.addColorStop(0.5,'#ffaa44');grad.addColorStop(1,'#44cc44');
   ctx.fillStyle=grad;ctx.fillRect(bx,by,barW*r,barH);ctx.fillStyle='#fff';ctx.font=isMobile?'9px sans-serif':'10px sans-serif';ctx.textAlign='center';ctx.fillText('HP '+Math.ceil(player.hp)+'/'+player.maxHp,bx+barW/2,by+(isMobile?5:7));
+  // 头盔护盾指示
+  if(player.helmetHp>0){ctx.fillStyle='#88ddff';ctx.font=isMobile?'9px sans-serif':'10px sans-serif';ctx.textAlign='left';ctx.fillText('\u{1F6E1} '+player.helmetHp,bx+barW+8,by+(isMobile?5:7));}
 }
 function drawScopeOverlay() {
   const cx=W/2,cy=H/2,g=ctx.createRadialGradient(cx,cy,W*0.18,cx,cy,W*0.55);
@@ -1079,7 +1091,7 @@ function updateUsernameDisplay() {
   // 更新已拥有永久武器显示
   const ownedEl = document.getElementById('ownedWeapons');
   if (ownedEl) {
-    const names={staff:'\u{1F3AF}金箍棒',laser:'\u{1F52B}激光枪'};
+    const names={staff:'\u{1F3AF}金箍棒',laser:'\u{1F52B}激光枪',helmet:'\u{1F6E1}️头盔'};
     const owned=game.purchasedItems.map(id=>names[id]).filter(Boolean);
     ownedEl.textContent=owned.length?'\u{1F4E6} 已拥有: '+owned.join('  '):'';
   }
