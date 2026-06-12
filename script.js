@@ -194,7 +194,6 @@ const game = {
   particles:[],bullets:[],enemies:[],supplies:[],stars:[],
   shellCasings:[],muzzleFlashes:[],boss:null,bossActive:false,
   aiTeammateEnabled:null,aiTeammate:null,aiTeammateLevel:'mid',
-  rank:'silver',rankScore:0,consecutiveLosses:0,
   currentLevel:1,unlockedLevel:1,
 };
 
@@ -245,34 +244,6 @@ const levelSystem = {
     };
   },
   get totalLevels() { return 55; }
-};
-
-// 等级系统
-const rankSystem = {
-  levels: [
-    {name:'silver',title:'🥈 白银',color:'#c0c0c0',next:300,bonus:1},
-    {name:'gold',title:'🥇 黄金',color:'#ffd700',next:600,bonus:1.1},
-    {name:'platinum',title:'💠 铂金',color:'#e5e4e2',next:1000,bonus:1.2},
-    {name:'diamond',title:'💎 钻石',color:'#00ffff',next:1500,bonus:1.3},
-    {name:'god',title:'⭐ 战神',color:'#ff0000',next:2500,bonus:1.5},
-    {name:'veteran_1',title:'🎖️ 老兵',color:'#ff6600',next:4000,bonus:1.7},
-    {name:'veteran_2',title:'🎖️ 老兵',color:'#ff6600',next:6000,bonus:1.8},
-    {name:'veteran_3',title:'🎖️ 老兵',color:'#ff6600',next:9000,bonus:1.9},
-    {name:'veteran_4',title:'🎖️ 老兵',color:'#ff6600',next:13000,bonus:2.0},
-    {name:'veteran_5',title:'🎖️ 老兵',color:'#ff6600',next:18000,bonus:2.1},
-  ],
-  getCurrent(){return this.levels.find(l=>l.name===game.rank)||this.levels[0];},
-  getNext(){const idx=this.levels.findIndex(l=>l.name===game.rank);return this.levels[Math.min(idx+1,this.levels.length-1)];},
-  checkUpgrade(){
-    const idx=this.levels.findIndex(l=>l.name===game.rank);
-    const next=this.levels[idx+1];
-    if(next&&game.rankScore>=next.next){
-      game.rank=next.name;
-      return next;
-    }
-    return null;
-  },
-  getBonus(){return this.getCurrent().bonus;}
 };
 
 // 关卡进度保存/加载
@@ -477,7 +448,6 @@ function checkBossDefeated() {
     createExplosion(W/2,H/3,'#ff4400',60);createExplosion(W/2-50,H/3+30,'#ff8800',40);createExplosion(W/2+50,H/3-20,'#ffcc00',30);
     game.screenShake=0;playSound('victory');
     // 胜利重置连输计数
-    game.consecutiveLosses=0;
     recordGameResult(game.score, true, game.currentLevel);
     unlockNextLevel();
   } else {
@@ -489,29 +459,7 @@ function gameOver() {
   game.diedThisRound=true;  // 标记本局战死
   finalScore.textContent=game.score;finalKills.textContent=game.kills;finalTotal.textContent=game.totalEnemies;
   gameOverScreen.style.display='flex';createExplosion(player.x,player.y,'#ff0000',40);game.screenShake=0;playSound('gameover');
-  // 连输计数+1，检查是否降级
-  game.consecutiveLosses++;
-  checkRankDemotion();
   recordGameResult(game.score, false, game.currentLevel);
-}
-// 检查段位降级（连输3次降级）
-function checkRankDemotion() {
-  if (game.consecutiveLosses < 3) return;
-  // 找到当前段位的索引
-  const idx = rankSystem.levels.findIndex(l => l.name === game.rank);
-  if (idx <= 0) return; // 已经是最高级，无法降级
-  // 降级到上一个段位
-  const demoted = rankSystem.levels[idx - 1];
-  game.rank = demoted.name;
-  // 段位积分也相应减少（取降级后段位的门槛）
-  game.rankScore = demoted.next;
-  // 重置连输计数
-  game.consecutiveLosses = 0;
-  // 显示降级提示
-  waveInfo.textContent = '📉 降级！' + demoted.title;
-  waveInfo.style.color = demoted.color;
-  waveInfo.style.opacity = '1';
-  setTimeout(() => { waveInfo.style.opacity = '0'; waveInfo.style.color = '#ffd700'; }, 2000);
 }
 function playerTakeDamage(dmg) {
   if(player.invincible>0||game.trainingMode)return;
@@ -520,36 +468,12 @@ function playerTakeDamage(dmg) {
   updateUI();
 }
 function addScore(points){
-  const bonus=rankSystem.getBonus();
-  const finalPoints=Math.round(points*bonus);
-  game.score+=finalPoints;
-  game.rankScore+=finalPoints;
-  // 检查升级
-  const upgraded=rankSystem.checkUpgrade();
-  if(upgraded){
-    waveInfo.textContent='🎉 升级！'+upgraded.title;
-    waveInfo.style.color=upgraded.color;
-    waveInfo.style.opacity='1';
-    setTimeout(()=>{waveInfo.style.opacity='0';waveInfo.style.color='#ffd700';},2000);
-  }
+  game.score+=points;
 }
 function updateUI() {
   scoreEl.textContent=game.score;livesEl.textContent=game.lives;killsEl.textContent=game.kills;
   remainingEl.textContent=Math.max(0,game.totalEnemies-game.kills);totalEl.textContent=game.totalEnemies;
   document.getElementById('uiCenter').style.display=game.trainingMode?'none':'';
-  // 更新等级显示
-  const rank=rankSystem.getCurrent();
-  const rankEl=document.getElementById('rankDisplay');
-  rankEl.textContent=rank.title;
-  rankEl.className='rank-badge '+rank.name;
-  rankEl.style.color=rank.color;
-  rankEl.style.display=game.running?'none':'block';
-  // 更新主页面等级显示
-  const startRankEl=document.getElementById('startScreenRank');
-  if(startRankEl){
-    startRankEl.textContent=rank.title;
-    startRankEl.className='start-rank '+rank.name;
-  }
 }
 function updateTrainingStats() {
   const acc=game.shotsFired>0?Math.round(game.hits/game.shotsFired*100):0;
@@ -1023,7 +947,6 @@ document.getElementById('startBtn').addEventListener('click',()=>{initAudio();st
 document.getElementById('restartBtn').addEventListener('click',()=>{gameOverScreen.style.display='none';resetGame();});
 document.getElementById('victoryRestartBtn').addEventListener('click',()=>{victoryScreen.style.display='none';resetGame();});
 function goToMenu(){
-  saveCurrentRank();
   gameOverScreen.style.display='none';victoryScreen.style.display='none';game.started=false;game.running=false;bgm.stop();startScreen.style.display='flex';updateUI();updateUsernameDisplay();renderLevelSelector();hideGameUI();
 }
 document.getElementById('gameOverMenuBtn').addEventListener('click',goToMenu);
@@ -1106,8 +1029,6 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
     const userData = getUserData(currentUser);
     userData.unlockedLevel = game.unlockedLevel;
     userData.currentLevel = game.currentLevel;
-    userData.rank = game.rank;
-    userData.rankScore = game.rankScore;
     saveUserData(currentUser, userData);
   }
   // 清除当前用户，返回登录界面
@@ -1131,9 +1052,6 @@ function getUserData(username) {
     gamesWon: 0,
     unlockedLevel: 1,
     currentLevel: 1,
-    rank: 'silver',
-    rankScore: 0,
-    consecutiveLosses: 0,
     playHistory: []
   };
 }
@@ -1159,9 +1077,6 @@ function setCurrentUser(username) {
   const userData = getUserData(username);
   game.unlockedLevel = userData.unlockedLevel;
   game.currentLevel = userData.currentLevel;
-  game.rank = userData.rank || 'silver';
-  game.rankScore = userData.rankScore || 0;
-  game.consecutiveLosses = userData.consecutiveLosses || 0;
   // 保存用户数据到本地和云端
   saveUserData(username, userData);
 }
@@ -1186,19 +1101,6 @@ function recordGameResult(score, won, level) {
   // 保存进度
   userData.unlockedLevel = game.unlockedLevel;
   userData.currentLevel = game.currentLevel;
-  userData.rank = game.rank;
-  userData.rankScore = game.rankScore;
-  userData.consecutiveLosses = game.consecutiveLosses;
-  saveUserData(currentUser, userData);
-}
-
-// 保存当前段位进度（在退出游戏或关闭浏览器时调用）
-function saveCurrentRank() {
-  if (!currentUser) return;
-  const userData = getUserData(currentUser);
-  userData.rank = game.rank;
-  userData.rankScore = game.rankScore;
-  userData.consecutiveLosses = game.consecutiveLosses;
   saveUserData(currentUser, userData);
 }
 
@@ -1687,7 +1589,7 @@ window.showAllUsers = function() {
     console.log(`${i+1}. ${user.username}`);
     console.log(`   总分: ${user.totalScore} 最高分: ${user.highScore}`);
     console.log(`   游戏: ${user.gamesPlayed}场 胜利: ${user.gamesWon}场`);
-    console.log(`   解锁关卡: ${user.unlockedLevel} 当前等级: ${user.rank}`);
+    console.log(`   解锁关卡: ${user.unlockedLevel}`);
   });
   return `共 ${Object.keys(allData).length} 位用户`;
 };
@@ -1803,7 +1705,7 @@ function renderAdminUsers() {
     html += `<div class="admin-user-item" style="position:relative;${isBanned?'opacity:0.5;':''}">
       <span class="u-name">${escHtml(u.username || '未知')}</span>
       <div class="u-stats">🏆 总分 ${u.totalScore || 0} · 最高 ${u.highScore || 0} · 🎮 ${u.gamesPlayed || 0}场（${winRate}%胜率）</div>
-      <div class="u-stats">📈 ${u.rank || 'silver'} · 解锁至第${u.unlockedLevel || 1}关 ${banText}</div>
+      <div class="u-stats">解锁至第${u.unlockedLevel || 1}关 ${banText}</div>
       <div class="u-actions" style="position:absolute;top:4px;right:4px;display:flex;gap:4px;">
         ${isBanned
           ? `<button class="u-btn unban" data-user="${escHtml(u.username)}">✅ 解封</button>`
@@ -1883,7 +1785,7 @@ function banUser(username, days) {
   // 本地封禁（如果不存在则创建基本数据）
   const allData = JSON.parse(localStorage.getItem(USERS_DATA_KEY) || '{}');
   if (!allData[username]) {
-    allData[username] = { username: username, totalScore: 0, highScore: 0, gamesPlayed: 0, gamesWon: 0, unlockedLevel: 1, currentLevel: 1, rank: 'silver', rankScore: 0, consecutiveLosses: 0 };
+    allData[username] = { username: username, totalScore: 0, highScore: 0, gamesPlayed: 0, gamesWon: 0, unlockedLevel: 1, currentLevel: 1 };
   }
   allData[username].banned = true;
   allData[username].banExpiry = Date.now() + days * 24 * 60 * 60 * 1000;
@@ -2011,7 +1913,6 @@ window.showMyData = function() {
   console.log(`总分: ${userData.totalScore} 最高分: ${userData.highScore}`);
   console.log(`游戏: ${userData.gamesPlayed}场 胜利: ${userData.gamesWon}场`);
   console.log(`解锁关卡: ${userData.unlockedLevel}`);
-  console.log(`当前等级: ${userData.rank} (${userData.rankScore}分)`);
   console.log(`最近10场:`);
   userData.playHistory.slice(-10).reverse().forEach((h, i) => {
     console.log(`  ${i+1}. ${new Date(h.date).toLocaleDateString()} 第${h.level}关 得分${h.score} ${h.won?'胜':'负'}`);
@@ -2037,9 +1938,6 @@ window.resetAll = function() {
     location.reload();
   }
 };
-
-// 关闭浏览器或刷新页面时保存段位
-window.addEventListener('beforeunload', saveCurrentRank);
 
 // 页面加载时检查密码
 checkPassword();

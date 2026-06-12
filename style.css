@@ -109,7 +109,6 @@
     .set-pwd-desc { color: #666; }
     .error-msg { color: #cc3333; }
     .forgot-hint { background: #f0f0f0; border-color: #ccc; color: #555; }
-    #rankDisplay { color: #333; }
     #devNotification { background: #e44; color: #fff; }
     #trainStats { color: #333; background: rgba(255,255,255,0.9); }
     .touch-dir { background: rgba(0,0,0,0.08); border-color: rgba(0,0,0,0.15); color: rgba(0,0,0,0.4); }
@@ -160,16 +159,6 @@
     pointer-events: none;
     z-index: 5;
     text-align: center;
-  }
-  #rankDisplay {
-    position: absolute;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 11px;
-    color: #aaa;
-    pointer-events: none;
-    z-index: 10;
   }
   .weapon-info {
     position: absolute;
@@ -294,7 +283,6 @@
     font-family: inherit;
   }
   #adminPanelBtn:hover { background: #4a5a3a; color: #aaba7a; }
-  .start-rank { font-size: 13px; color: #888; margin-bottom: 16px; }
   #startScreen .controls {
     background: #16162a;
     border: 1px solid #333;
