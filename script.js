@@ -197,7 +197,7 @@ const game = {
   shellCasings:[],muzzleFlashes:[],boss:null,bossActive:false,
   aiTeammateEnabled:null,aiTeammate:null,aiTeammateLevel:'mid',
   currentLevel:1,unlockedLevel:1,
-  coins:0,purchasedItems:[],
+  coins:0,purchasedItems:[],winStreak:0,
   meleeSwingTimer:0,
 };
 
@@ -455,7 +455,10 @@ function triggerBoss() {
     createExplosion(W/2,H/3,'#ffd700',50);
     playSound('victory');
     recordGameResult(game.score, true, game.currentLevel);
-    document.getElementById('vicCoins').textContent = awardCoins(game.score, true, game.currentLevel);
+    const earned = awardCoins(game.score, true, game.currentLevel);
+    document.getElementById('vicCoins').textContent = earned;
+    const sEl=document.getElementById('vicStreak');
+    if(sEl) sEl.textContent = game.winStreak>1 ? '🔥 '+game.winStreak+'连胜 x'+(1+(game.winStreak-1)*0.5).toFixed(1) : '';
     unlockNextLevel();
     return;
   }
@@ -480,7 +483,10 @@ function triggerBoss() {
     createExplosion(W/2,H/3,'#ff4400',60);createExplosion(W/2-50,H/3+30,'#ff8800',40);createExplosion(W/2+50,H/3-20,'#ffcc00',30);
     game.screenShake=0;playSound('victory');
     recordGameResult(game.score, true, game.currentLevel);
-    document.getElementById('vicCoins').textContent = awardCoins(game.score, true, game.currentLevel);
+    const earned = awardCoins(game.score, true, game.currentLevel);
+    document.getElementById('vicCoins').textContent = earned;
+    const sEl=document.getElementById('vicStreak');
+    if(sEl) sEl.textContent = game.winStreak>1 ? '🔥 '+game.winStreak+'连胜 x'+(1+(game.winStreak-1)*0.5).toFixed(1) : '';
     unlockNextLevel();
     return;
   }
@@ -525,7 +531,10 @@ function checkBossDefeated() {
     game.screenShake=0;playSound('victory');
     // 胜利重置连输计数
     recordGameResult(game.score, true, game.currentLevel);
-    document.getElementById('vicCoins').textContent = awardCoins(game.score, true, game.currentLevel);
+    const earned = awardCoins(game.score, true, game.currentLevel);
+    document.getElementById('vicCoins').textContent = earned;
+    const sEl=document.getElementById('vicStreak');
+    if(sEl) sEl.textContent = game.winStreak>1 ? '🔥 '+game.winStreak+'连胜 x'+(1+(game.winStreak-1)*0.5).toFixed(1) : '';
     unlockNextLevel();
   } else {
     setTimeout(()=>{triggerBoss();},2000);
@@ -557,9 +566,16 @@ function playerTakeDamage(dmg) {
 function addScore(points){
   game.score+=points;
 }
-// 金币奖励：根据本局表现给予金币
+// 金币奖励：根据本局表现给予金币，连胜加快金币获取速度
 function awardCoins(score, won, level) {
-  const earned = Math.max(won ? 5 : 1, Math.floor(score / (won ? 10 : 20)));
+  if (!won) { game.winStreak = 0; }
+  else { game.winStreak = (game.winStreak || 0) + 1; }
+  let earned = Math.max(won ? 5 : 1, Math.floor(score / (won ? 10 : 20)));
+  // 连胜加速：每连胜1局+50%，上限5倍
+  if (won && game.winStreak > 1) {
+    const mult = Math.min(5, 1 + (game.winStreak - 1) * 0.5);
+    earned = Math.round(earned * mult);
+  }
   game.coins += earned;
   return earned;
 }
