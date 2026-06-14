@@ -369,7 +369,10 @@ function spawnEnemy() {
   const cfg=game.levelConfig||levelSystem.getCurrent();
   const hp=randInt(Math.round(cfg.enemyHp*0.8),Math.round(cfg.enemyHp*1.2));
   const speed=rand(cfg.enemySpeed*0.8,cfg.enemySpeed*1.2);
-  game.enemies.push({x:rand(40,W-40),y:-40,w:28,h:40,hp,maxHp:hp,speed:clamp(speed,0.3,2.0),dir:1,shootTimer:randInt(20,80),canShoot:true,animFrame:0,animTimer:0});
+  const tower = game.tower;
+  const spawnX = tower ? tower.x + rand(-tower.w/3, tower.w/3) : rand(40, W-40);
+  const spawnY = tower ? tower.y - tower.h - 5 : -40;
+  game.enemies.push({x:spawnX,y:spawnY,w:28,h:40,hp,maxHp:hp,speed:clamp(speed,0.3,2.0),dir:1,shootTimer:randInt(20,80),canShoot:true,animFrame:0,animTimer:0});
 }
 function spawnTarget() {
   const types=[{w:30,h:50,hp:1,points:10},{w:40,h:60,hp:1,points:5},{w:24,h:36,hp:1,points:20}];
@@ -681,6 +684,8 @@ function resetGame() {
   game.maxEnemiesOnScreen=game.trainingMode?6:Math.min(4,Math.ceil(cfg.enemies/3));
   game.over=false;game.won=false;game.zoomed=false;game.bossActive=false;game.boss=null;game.bosses=[];game.bossesDefeated=0;game.postWaveSpawned=false;
   game.levelConfig=cfg;
+  // 塔 — 敌人从塔顶出现
+  game.tower = { x: W * 0.58, y: H * 0.72, w: 80, h: 380 };
   keys.zoom=false;game.running=true;
   // 血量恢复：战死后来一局恢复50点，正常通关恢复30%
   const hpRestore = game.diedThisRound ? 50 : Math.max(10, Math.round(player.maxHp * 0.3));
@@ -705,6 +710,79 @@ function resetGame() {
 }
 
 // Drawing
+function drawTower() {
+  const t = game.tower;
+  if (!t) return;
+  const tx = t.x, ty = t.y, tw = t.w, th = t.h, topY = ty - th;
+
+  // Shadow on ground
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath(); ctx.ellipse(tx, ty+3, tw/2+12, 8, 0, 0, Math.PI*2); ctx.fill();
+
+  // Main body
+  ctx.fillStyle = '#5a4030';
+  ctx.fillRect(tx - tw/2, topY, tw, th);
+
+  // Stone horizontal lines
+  ctx.strokeStyle = '#4a3020';
+  ctx.lineWidth = 1;
+  for (let y = topY + 10; y < ty; y += 18) {
+    ctx.beginPath(); ctx.moveTo(tx - tw/2, y); ctx.lineTo(tx + tw/2, y); ctx.stroke();
+  }
+  // Stone vertical lines (staggered per row)
+  for (let row = 0; row < Math.ceil(th / 18); row++) {
+    const y = topY + 10 + row * 18;
+    const offset = (row % 2) * 20;
+    for (let x = tx - tw/2 + offset + 20; x < tx + tw/2; x += 40) {
+      ctx.beginPath(); ctx.moveTo(x, y - 8); ctx.lineTo(x, y + 10); ctx.stroke();
+    }
+  }
+
+  // Edge highlights
+  ctx.fillStyle = '#6a5040';
+  ctx.fillRect(tx - tw/2, topY, 4, th);
+  ctx.fillRect(tx + tw/2 - 4, topY, 4, th);
+
+  // Battlements at top
+  ctx.fillStyle = '#6a5040';
+  const crenelW = 10, gapW = 8;
+  for (let x = tx - tw/2; x < tx + tw/2; x += crenelW + gapW) {
+    const cw = Math.min(crenelW, tx + tw/2 - x);
+    if (cw > 0) ctx.fillRect(x, topY - 14, cw, 14);
+  }
+  ctx.fillStyle = '#4a3020';
+  ctx.fillRect(tx - tw/2 - 4, topY - 2, tw + 8, 4);
+
+  // Windows
+  ctx.fillStyle = '#2a1a0a';
+  ctx.fillRect(tx - 3, topY + 30, 6, 20);   // arrow slit (top)
+  ctx.fillRect(tx - 8, topY + 100, 16, 24);  // window (mid)
+  ctx.fillRect(tx - 8, topY + 200, 16, 24);  // window (lower)
+
+  // Window glow
+  ctx.fillStyle = 'rgba(255, 200, 100, 0.08)';
+  ctx.fillRect(tx - 6, topY + 102, 12, 20);
+  ctx.fillRect(tx - 6, topY + 202, 12, 20);
+
+  // Door arch at base
+  ctx.strokeStyle = '#3a2010';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(tx, ty - 35, 10, Math.PI, 0); ctx.stroke();
+  ctx.fillStyle = '#2a1a0a';
+  ctx.fillRect(tx - 9, ty - 35, 18, 35);
+
+  // Flag
+  ctx.fillStyle = '#5a3a20';
+  ctx.fillRect(tx - 1, topY - 30, 2, 20);
+  ctx.fillStyle = '#cc3333';
+  ctx.beginPath();
+  ctx.moveTo(tx + 1, topY - 28);
+  ctx.lineTo(tx + 25, topY - 22);
+  ctx.lineTo(tx + 1, topY - 16);
+  ctx.closePath();
+  ctx.fill();
+}
+
 function drawBackground() {
   const g=ctx.createLinearGradient(0,0,0,H*0.6); g.addColorStop(0,'#0a0a1a');g.addColorStop(0.5,'#1a1a2e');g.addColorStop(1,'#2a1a0a');
   ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
@@ -723,6 +801,7 @@ function drawBackground() {
   ctx.fillStyle='#5a4a3a';ctx.fillRect(0,H-20,W,20);ctx.fillStyle='#6a5a4a';
   for(let i=0;i<W;i+=25){ctx.fillRect(i,H-20,23,8);ctx.fillRect(i+4,H-12,23,8);}
   ctx.fillStyle='#4a3a2a';ctx.fillRect(0,H-22,W,2);
+  drawTower();
 }
 
 function drawSoldier(px,py,w,h,dir,isPlayer,hp,maxHp,moving,invincible,isAITeammate) {
