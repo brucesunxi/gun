@@ -204,17 +204,17 @@ const game = {
 // 55关系统（1-11手动设计，12-55自动生成）
 const levelSystem = {
   levels: [
-    {level:1,name:'新兵训练',enemies:5,spawnInterval:100,enemyHp:15,enemySpeed:0.8,hasBoss:false,desc:'5名敌人，慢速刷新'},
-    {level:2,name:'初上战场',enemies:8,spawnInterval:90,enemyHp:20,enemySpeed:1.0,hasBoss:false,desc:'8名敌人，基础难度'},
-    {level:3,name:'激烈交火',enemies:12,spawnInterval:80,enemyHp:25,enemySpeed:1.1,hasBoss:false,desc:'12名敌人，速度提升'},
-    {level:4,name:'重围突破',enemies:16,spawnInterval:70,enemyHp:30,enemySpeed:1.2,hasBoss:false,desc:'16名敌人，快速刷新'},
-    {level:5,name:'精英对决',enemies:20,spawnInterval:65,enemyHp:35,enemySpeed:1.3,hasBoss:true,bossHp:200,bossCount:1,desc:'20名敌人+小BOSS'},
-    {level:6,name:'血腥战场',enemies:25,spawnInterval:60,enemyHp:40,enemySpeed:1.4,hasBoss:true,bossHp:300,bossCount:1,desc:'25名敌人+强化BOSS'},
-    {level:7,name:'死亡峡谷',enemies:30,spawnInterval:55,enemyHp:45,enemySpeed:1.5,hasBoss:true,bossHp:350,bossCount:2,desc:'30名敌人+双BOSS'},
-    {level:8,name:'终极决战',enemies:35,spawnInterval:50,enemyHp:50,enemySpeed:1.6,hasBoss:true,bossHp:400,bossCount:3,desc:'35名敌人+三BOSS'},
-    {level:9,name:'终极试炼',enemies:25,spawnInterval:40,enemyHp:80,enemySpeed:2.0,hasBoss:true,bossHp:600,bossCount:1,desc:'25名精英+终极BOSS'},
-    {level:10,name:'地狱之门',enemies:30,spawnInterval:38,enemyHp:90,enemySpeed:2.2,hasBoss:true,bossHp:700,bossCount:1,bossAddEnemies:7,desc:'30名敌人+BOSS+7名援军'},
-    {level:11,name:'众神之巅',enemies:35,spawnInterval:35,enemyHp:100,enemySpeed:2.4,hasBoss:true,bossHp:800,bossCount:3,postBossWave:10,desc:'35名敌人+三大BOSS+10精英'}
+    {level:1,name:'新兵训练',enemies:5,spawnInterval:120,enemyHp:15,enemySpeed:0.7,hasBoss:false,desc:'5名敌人，慢速刷新'},
+    {level:2,name:'初上战场',enemies:8,spawnInterval:110,enemyHp:20,enemySpeed:0.8,hasBoss:false,desc:'8名敌人，基础难度'},
+    {level:3,name:'激烈交火',enemies:12,spawnInterval:100,enemyHp:25,enemySpeed:0.9,hasBoss:false,desc:'12名敌人，速度提升'},
+    {level:4,name:'重围突破',enemies:16,spawnInterval:90,enemyHp:30,enemySpeed:1.0,hasBoss:false,desc:'16名敌人，快速刷新'},
+    {level:5,name:'精英对决',enemies:20,spawnInterval:85,enemyHp:35,enemySpeed:1.1,hasBoss:true,bossHp:200,bossCount:1,desc:'20名敌人+小BOSS'},
+    {level:6,name:'血腥战场',enemies:25,spawnInterval:80,enemyHp:40,enemySpeed:1.2,hasBoss:true,bossHp:300,bossCount:1,desc:'25名敌人+强化BOSS'},
+    {level:7,name:'死亡峡谷',enemies:30,spawnInterval:75,enemyHp:45,enemySpeed:1.3,hasBoss:true,bossHp:350,bossCount:2,desc:'30名敌人+双BOSS'},
+    {level:8,name:'终极决战',enemies:35,spawnInterval:70,enemyHp:50,enemySpeed:1.4,hasBoss:true,bossHp:400,bossCount:3,desc:'35名敌人+三BOSS'},
+    {level:9,name:'终极试炼',enemies:25,spawnInterval:60,enemyHp:80,enemySpeed:1.6,hasBoss:true,bossHp:600,bossCount:1,desc:'25名精英+终极BOSS'},
+    {level:10,name:'地狱之门',enemies:30,spawnInterval:55,enemyHp:90,enemySpeed:1.8,hasBoss:true,bossHp:700,bossCount:1,bossAddEnemies:7,desc:'30名敌人+BOSS+7名援军'},
+    {level:11,name:'众神之巅',enemies:35,spawnInterval:50,enemyHp:100,enemySpeed:2.0,hasBoss:true,bossHp:800,bossCount:3,postBossWave:10,desc:'35名敌人+三大BOSS+10精英'}
   ],
   getCurrent(){
     const lvl = this.getConfig(game.currentLevel);
@@ -236,9 +236,9 @@ const levelSystem = {
       level: lvl,
       name: lvl <= 20 ? '钢铁试炼' : (lvl <= 35 ? '深渊征途' : '混沌终焉'),
       enemies: Math.min(base, 80),
-      spawnInterval: Math.max(12, 40 - (lvl - 11) * 0.5),
-      enemyHp: Math.round(80 + (lvl - 11) * 8),
-      enemySpeed: Math.min(3.5, 2.0 + (lvl - 11) * 0.05),
+      spawnInterval: Math.max(25, 60 - (lvl - 11) * 0.5),
+      enemyHp: Math.round(60 + (lvl - 11) * 6),
+      enemySpeed: Math.min(3.0, 1.5 + (lvl - 11) * 0.04),
       hasBoss,
       bossHp,
       bossCount,
@@ -391,16 +391,16 @@ function shoot() {
   if(player.shootCooldown>0||game.over||!game.running)return;
   const cx=player.x,cy=player.y-player.h/2, dmg=player.damageMult, cd=Math.round(player.fireRateMult*10)/10;
   if(player.weapon==='pistol') {
-    game.bullets.push({x:cx,y:cy-10,vx:rand(-0.5,0.5),vy:-7,damage:Math.round(18*dmg),w:4,h:10,color:'#ffdd44',trail:[]});
+    game.bullets.push({x:cx,y:cy-10,vx:rand(-0.5,0.5),vy:-7,damage:Math.round(22*dmg),w:4,h:10,color:'#ffdd44',trail:[]});
     player.shootCooldown=Math.round(12*cd);
   } else if(player.weapon==='rifle') {
-    game.bullets.push({x:cx,y:cy-10,vx:rand(-0.2,0.2),vy:-10,damage:Math.round(25*dmg),w:3,h:14,color:'#88ffff',trail:[]});
+    game.bullets.push({x:cx,y:cy-10,vx:rand(-0.2,0.2),vy:-10,damage:Math.round(30*dmg),w:3,h:14,color:'#88ffff',trail:[]});
     player.shootCooldown=Math.round(7*cd);
   } else if(player.weapon==='shotgun') {
-    for(let i=0;i<6;i++) game.bullets.push({x:cx,y:cy-8,vx:rand(-2.5,2.5),vy:rand(-9,-5),damage:Math.round(15*dmg),w:4,h:5,color:'#ffaa44',trail:[]});
+    for(let i=0;i<6;i++) game.bullets.push({x:cx,y:cy-8,vx:rand(-2.5,2.5),vy:rand(-9,-5),damage:Math.round(18*dmg),w:4,h:5,color:'#ffaa44',trail:[]});
     player.shootCooldown=Math.round(32*cd);
   } else if(player.weapon==='sniper') {
-    game.bullets.push({x:cx,y:cy-10,vx:rand(-0.1,0.1),vy:-14,damage:Math.round(60*dmg),w:4,h:18,color:'#ff6666',trail:[]});
+    game.bullets.push({x:cx,y:cy-10,vx:rand(-0.1,0.1),vy:-14,damage:Math.round(70*dmg),w:4,h:18,color:'#ff6666',trail:[]});
     player.shootCooldown=Math.round(35*cd);
   } else if(player.weapon==='staff') {
     // 金箍棒：范围近战攻击
@@ -410,7 +410,7 @@ function shoot() {
       if(e.isTarget) continue;
       const dx=e.x-player.x,dy=e.y-player.y;
       if(dy>-range&&dy<20&&Math.abs(dx)<halfW){
-        e.hp-=Math.round(55*dmg);
+        e.hp-=Math.round(65*dmg);
         createExplosion(e.x,e.y,'#ffd700',10);
         playSound('enemy_hit');
         if(e.hp<=0){
@@ -425,7 +425,7 @@ function shoot() {
     if(game.bossActive&&game.boss){
       const b=game.boss;
       if(b.y-player.y>-range&&b.y-player.y<20&&Math.abs(b.x-player.x)<halfW){
-        b.hp-=Math.round(55*dmg*0.8);
+        b.hp-=Math.round(65*dmg*0.8);
         createExplosion(b.x,b.y,'#ffd700',15);
         playSound('enemy_hit');
         if(b.hp<=0){b.hp=0;addScore(50);checkBossDefeated();}
@@ -435,7 +435,7 @@ function shoot() {
     player.shootCooldown=Math.round(22*cd);
   } else if(player.weapon==='laser') {
     // 激光枪：快速穿刺射击
-    game.bullets.push({x:cx,y:cy-10,vx:0,vy:-16,damage:Math.round(15*dmg),w:3,h:24,color:'#ff0044',trail:[],piercing:true});
+    game.bullets.push({x:cx,y:cy-10,vx:0,vy:-16,damage:Math.round(18*dmg),w:3,h:24,color:'#ff0044',trail:[],piercing:true});
     player.shootCooldown=Math.round(5*cd);
   }
   shootSound(); createMuzzleFlash(cx,cy-8);
@@ -443,7 +443,7 @@ function shoot() {
 }
 function enemyShoot(enemy) {
   const a=Math.atan2(player.y-enemy.y,player.x-enemy.x)+rand(-0.35,0.35);
-  game.bullets.push({x:enemy.x,y:enemy.y+10,vx:Math.cos(a)*rand(2.5,4),vy:Math.sin(a)*rand(2.5,4),damage:10,w:6,h:6,color:'#ff2222',enemyBullet:true,trail:[]});
+  game.bullets.push({x:enemy.x,y:enemy.y+10,vx:Math.cos(a)*rand(1.5,2.5),vy:Math.sin(a)*rand(1.5,2.5),damage:10,w:6,h:6,color:'#ff2222',enemyBullet:true,trail:[]});
 }
 function triggerBoss() {
   if(game.bossActive||game.trainingMode)return;
