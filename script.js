@@ -192,7 +192,7 @@ const game = {
   score:0,lives:3,kills:0,totalEnemies:0,enemiesSpawned:0,
   trainingMode:false,shotsFired:0,hits:0,combo:0,maxCombo:0,
   running:false,over:false,won:false,started:false,zoomed:false,shopOpen:false,
-  frame:0,enemySpawnTimer:0,enemySpawnInterval:90,maxEnemiesOnScreen:4,screenShake:0,
+  frame:0,enemySpawnTimer:0,enemySpawnInterval:90,maxEnemiesOnScreen:4,screenShake:0,damageFlash:0,
   particles:[],bullets:[],enemies:[],supplies:[],stars:[],
   shellCasings:[],muzzleFlashes:[],boss:null,bossActive:false,
   aiTeammateEnabled:null,aiTeammate:null,aiTeammateLevel:'mid',
@@ -559,7 +559,7 @@ function playerTakeDamage(dmg) {
     dmg-=absorbed;
     createExplosion(player.x,player.y-30,'#88ddff',5);
   }
-  if(dmg>0){player.hp-=dmg;player.invincible=20;game.screenShake=8;playSound('hit');}
+  if(dmg>0){player.hp-=dmg;player.invincible=20;game.screenShake=8;game.damageFlash=60;playSound('hit');}
   if(player.hp<=0){player.hp=0;gameOver();}
   updateUI();
 }
@@ -969,8 +969,6 @@ function update() {
     e.x+=Math.cos(ang)*e.speed;e.y+=Math.sin(ang)*e.speed;e.dir=dx>0?1:-1;
     e.animTimer++;if(e.animTimer>10){e.animTimer=0;e.animFrame=(e.animFrame+1)%4;}
     if(e.canShoot&&dist(e,player)<550){e.shootTimer++;if(e.shootTimer>randInt(30,60)){e.shootTimer=0;enemyShoot(e);}}
-    if(dist(e,player)<20){playerTakeDamage(20);createExplosion(e.x,e.y,'#ff4444',10);game.enemies.splice(i,1);continue;}
-    if(aiTeammate.active&&dist(e,aiTeammate)<20){aiTeammateTakeDamage(15);createExplosion(e.x,e.y,'#ff4444',10);game.enemies.splice(i,1);continue;}
     if(e.y>H+50)game.enemies.splice(i,1);
   }
   if(game.bossActive&&game.boss){
@@ -983,7 +981,14 @@ function update() {
     if(b.x<-20||b.x>W+20||b.y<-20||b.y>H+20){game.bullets.splice(i,1);continue;}
     if(b.enemyBullet){if(dist(b,player)<15){playerTakeDamage(b.damage);game.bullets.splice(i,1);createExplosion(b.x,b.y,'#ff4444',5);continue;}if(aiTeammate.active&&dist(b,aiTeammate)<15){aiTeammateTakeDamage(b.damage);game.bullets.splice(i,1);createExplosion(b.x,b.y,'#ff4444',5);continue;}}
     else if(game.bossActive&&game.boss&&Math.abs(b.x-game.boss.x)<game.boss.w*0.5&&Math.abs(b.y-game.boss.y)<game.boss.h*0.5){game.boss.hp-=b.damage*0.8;if(!b.piercing)game.bullets.splice(i,1);createExplosion(b.x,b.y,'#ff8800',8);playSound('enemy_hit');if(game.boss.hp<=0){game.boss.hp=0;addScore(50);checkBossDefeated();}}
-    else{for(let j=game.enemies.length-1;j>=0;j--){const e=game.enemies[j],hw=e.isTarget?e.w*0.5:20,hh=e.isTarget?e.h*0.5:25;if(Math.abs(b.x-e.x)<hw&&Math.abs(b.y-e.y)<hh){e.hp-=b.damage;if(!b.piercing)game.bullets.splice(i,1);if(e.isTarget){game.hits++;if(e.hp<=0){game.combo++;if(game.combo>game.maxCombo)game.maxCombo=game.combo;addScore(Math.round(e.points*(1+Math.floor(game.combo/5)*0.5)));game.kills++;createExplosion(e.x,e.y,'#88ddff',15);playSound('explosion');if(game.combo>1){waveInfo.textContent='\u{1F525} '+game.combo+' 连击！';waveInfo.style.opacity='1';setTimeout(()=>{waveInfo.style.opacity='0';},1000);}game.enemies.splice(j,1);updateTrainingStats();}else{createExplosion(b.x,b.y,'#88ddff',5);playSound('enemy_hit');}}else{createExplosion(b.x,b.y,'#ffaa44',5);playSound('enemy_hit');if(e.hp<=0){addScore(10);game.kills++;createExplosion(e.x,e.y,'#ff6600',25);playSound('explosion');if(Math.random()<0.15)spawnSupply();game.enemies.splice(j,1);updateUI();if(game.kills>=game.totalEnemies&&!game.bossActive&&!game.trainingMode)triggerBoss();}}break;}}}
+    else{for(let j=game.enemies.length-1;j>=0;j--){const e=game.enemies[j],hw=e.isTarget?e.w*0.5:28,hh=e.isTarget?e.h*0.5:32;if(Math.abs(b.x-e.x)<hw&&Math.abs(b.y-e.y)<hh){e.hp-=b.damage;if(!b.piercing)game.bullets.splice(i,1);if(e.isTarget){game.hits++;if(e.hp<=0){game.combo++;if(game.combo>game.maxCombo)game.maxCombo=game.combo;addScore(Math.round(e.points*(1+Math.floor(game.combo/5)*0.5)));game.kills++;createExplosion(e.x,e.y,'#88ddff',15);playSound('explosion');if(game.combo>1){waveInfo.textContent='\u{1F525} '+game.combo+' 连击！';waveInfo.style.opacity='1';setTimeout(()=>{waveInfo.style.opacity='0';},1000);}game.enemies.splice(j,1);updateTrainingStats();}else{createExplosion(b.x,b.y,'#88ddff',5);playSound('enemy_hit');}}else{createExplosion(b.x,b.y,'#ffaa44',5);playSound('enemy_hit');if(e.hp<=0){addScore(10);game.kills++;createExplosion(e.x,e.y,'#ff6600',25);playSound('explosion');if(Math.random()<0.15)spawnSupply();game.enemies.splice(j,1);updateUI();if(game.kills>=game.totalEnemies&&!game.bossActive&&!game.trainingMode)triggerBoss();}}break;}}}
+  }
+  // 敌人接触伤害（放在子弹碰撞之后，让子弹先击中敌人）
+  for(let i=game.enemies.length-1;i>=0;i--){
+    const e=game.enemies[i];
+    if(e.isTarget) continue;
+    if(dist(e,player)<20){playerTakeDamage(20);createExplosion(e.x,e.y,'#ff4444',10);game.enemies.splice(i,1);continue;}
+    if(aiTeammate.active&&dist(e,aiTeammate)<20){aiTeammateTakeDamage(15);createExplosion(e.x,e.y,'#ff4444',10);game.enemies.splice(i,1);continue;}
   }
   for(let i=game.supplies.length-1;i>=0;i--){const s=game.supplies[i];s.y+=s.speed;if(dist(s,player)<28){if(player.weapon==='pistol'){player.weapon='rifle';weaponInfo.textContent='\u{1F52B} 步枪 (25·连发)';}else if(player.weapon==='rifle'){player.weapon='shotgun';weaponInfo.textContent='\u{1F52B} 霰弹枪 (15×6·散射)';}else if(player.weapon==='shotgun'){player.weapon='sniper';weaponInfo.textContent='\u{1F3AF} 狙击枪 (60·远程)';}addScore(20);updateUI();playSound('pickup');createExplosion(s.x,s.y,'#ffd700',15);game.supplies.splice(i,1);continue;}if(s.y>H+30)game.supplies.splice(i,1);}
   for(let i=game.particles.length-1;i>=0;i--){const p=game.particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.1;p.life--;if(p.life<=0)game.particles.splice(i,1);}
@@ -991,6 +996,7 @@ function update() {
   for(let i=game.shellCasings.length-1;i>=0;i--){const s=game.shellCasings[i];s.x+=s.vx;s.y+=s.vy;s.vy+=0.2;s.rotation+=0.1;s.life--;if(s.life<=0)game.shellCasings.splice(i,1);}
   if(game.screenShake>0)game.screenShake*=0.9;
   if(game.screenShake<0.1)game.screenShake=0;
+  if(game.damageFlash>0)game.damageFlash--;
   if(game.meleeSwingTimer>0)game.meleeSwingTimer--;
 }
 
@@ -1006,6 +1012,15 @@ function render() {
   if(game.bossActive&&game.boss)drawBoss(game.boss);
   drawExplosions();drawMuzzleFlashes();
   ctx.restore();
+  // 受击时屏幕左右边缘绿色闪烁
+  if(game.damageFlash>0){
+    ctx.save();
+    const alpha=game.damageFlash/60*0.6;
+    ctx.fillStyle=`rgba(0,255,100,${alpha})`;
+    ctx.fillRect(0,0,20,H);
+    ctx.fillRect(W-20,0,20,H);
+    ctx.restore();
+  }
   ctx.save();drawHpBar();if(aiTeammate.active)drawAITeammateHpBar();if(game.zoomed)drawScopeOverlay();if(game.bossActive)drawBossHpBar();ctx.restore();
 }
 
