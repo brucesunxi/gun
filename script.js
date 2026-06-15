@@ -192,7 +192,7 @@ const game = {
   score:0,lives:3,kills:0,totalEnemies:0,enemiesSpawned:0,
   trainingMode:false,shotsFired:0,hits:0,combo:0,maxCombo:0,
   running:false,over:false,won:false,started:false,zoomed:false,shopOpen:false,
-  frame:0,enemySpawnTimer:0,enemySpawnInterval:90,maxEnemiesOnScreen:4,screenShake:0,damageFlash:0,
+  frame:0,enemySpawnTimer:0,enemySpawnInterval:90,maxEnemiesOnScreen:4,screenShake:0,damageFlash:0,autoAimCharges:0,autoAimTimer:0,autoAimCooldown:0,
   particles:[],bullets:[],enemies:[],supplies:[],stars:[],
   shellCasings:[],muzzleFlashes:[],boss:null,bossActive:false,
   aiTeammateEnabled:null,aiTeammate:null,aiTeammateLevel:'mid',
@@ -303,12 +303,14 @@ const shopItems = [
 ];
 // 永久物品（用金币购买，全局保存）
 const permanentItems = [
-  {id:'staff',name:'\u{1F3AF} 金箍棒',desc:'范围近战 · 55伤害',price:200},
-  {id:'laser',name:'\u{1F52B} 激光枪',desc:'快速穿刺 · 15伤害',price:200},
+  {id:'staff',name:'\u{1F3AF} 金箍棒',desc:'范围近战 · 65伤害',price:200},
+  {id:'laser',name:'\u{1F52B} 激光枪',desc:'快速穿刺 · 18伤害',price:200},
+  {id:'ak47',name:'\u{1F52B} AK47',desc:'全自动步枪 · 28伤害',price:87},
   {id:'helmet',name:'\u{1F6E1}️ 防护头盔',desc:'吸收51伤害 · 每局重置',price:35},
+  {id:'autoAim',name:'\u{1F3AF} 精准描板',desc:'开局3次自动瞄准 · 每次5秒',price:120},
 ];
 function equipPermanentWeapon(id) {
-  const w={staff:{text:'\u{1F3AF} 金箍棒 (55·近战)'},laser:{text:'\u{1F52B} 激光枪 (15·穿刺)'}};
+  const w={staff:{text:'\u{1F3AF} 金箍棒 (65·近战)'},laser:{text:'\u{1F52B} 激光枪 (18·穿刺)'},ak47:{text:'\u{1F52B} AK47 (28·全自动)'}};
   if(w[id]){player.weapon=id;weaponInfo.textContent=w[id].text;}
 }
 let permShopOpen=false;
@@ -402,6 +404,9 @@ function shoot() {
   } else if(player.weapon==='sniper') {
     game.bullets.push({x:cx,y:cy-10,vx:rand(-0.1,0.1),vy:-14,damage:Math.round(70*dmg),w:4,h:18,color:'#ff6666',trail:[]});
     player.shootCooldown=Math.round(35*cd);
+  } else if(player.weapon==='ak47') {
+    game.bullets.push({x:cx,y:cy-10,vx:rand(-0.4,0.4),vy:-9,damage:Math.round(28*dmg),w:3,h:12,color:'#ffaa44',trail:[]});
+    player.shootCooldown=Math.round(8*cd);
   } else if(player.weapon==='staff') {
     // 金箍棒：范围近战攻击
     const range=200,halfW=60;
@@ -707,12 +712,17 @@ function resetGame() {
   const hpRestore = game.diedThisRound ? 50 : Math.max(10, Math.round(player.maxHp * 0.3));
   player.x=W/2; player.hp=Math.min(player.maxHp, hpRestore); player.weapon='pistol'; player.damageMult=1; player.fireRateMult=1; player.armor=0;
   player.helmetHp=game.purchasedItems.includes('helmet')?51:0;
-  // 自动装备已拥有的永久武器（金箍棒 > 激光枪 > 手枪）
-  if(game.purchasedItems.includes('staff')){player.weapon='staff';weaponInfo.textContent='\u{1F3AF} 金箍棒 (55·近战)';}
-  else if(game.purchasedItems.includes('laser')){player.weapon='laser';weaponInfo.textContent='\u{1F52B} 激光枪 (15·穿刺)';}
-  else{weaponInfo.textContent='\u{1F52B} 手枪 (18伤害)';}
+  // 自动装备已拥有的永久武器（金箍棒 > 激光枪 > AK47 > 手枪）
+  if(game.purchasedItems.includes('staff')){player.weapon='staff';weaponInfo.textContent='\u{1F3AF} 金箍棒 (65·近战)';}
+  else if(game.purchasedItems.includes('laser')){player.weapon='laser';weaponInfo.textContent='\u{1F52B} 激光枪 (18·穿刺)';}
+  else if(game.purchasedItems.includes('ak47')){player.weapon='ak47';weaponInfo.textContent='\u{1F52B} AK47 (28·全自动)';}
+  else{weaponInfo.textContent='\u{1F52B} 手枪 (22伤害)';}
   game.diedThisRound = false;  // 重置标志
   player.invincible=game.trainingMode?9999:60;player.shootCooldown=0;
+  // 精准描板：开局3次自动瞄准，每次5秒
+  game.autoAimCharges=game.purchasedItems.includes('autoAim')?3:0;
+  game.autoAimTimer=game.autoAimCharges>0?300:0;
+  game.autoAimCooldown=0;
   if(game.aiTeammateEnabled){initAITeammate(game.aiTeammateEnabled);}
   else{aiTeammate.active=false;}
   // 每关只重置武器购买状态，其他升级保留
@@ -976,6 +986,27 @@ function update() {
     if(b.state==='enter'){b.y+=0.8;b.enterTimer--;if(b.enterTimer<=0)b.state='fight';}
     else{b.x+=b.speed*b.dir;if(b.x>W-50)b.dir=-1;if(b.x<50)b.dir=1;b.phase=b.hp<b.maxHp*0.5?2:1;b.shootTimer++;const iv=b.phase===2?35:55;if(b.shootTimer>=iv){b.shootTimer=0;const a=Math.atan2(player.y-b.y,player.x-b.x);if(b.phase===1){game.bullets.push({x:b.x,y:b.y+30,vx:Math.cos(a)*4,vy:Math.sin(a)*4,damage:20,w:8,h:8,color:'#ff6622',enemyBullet:true,trail:[]});}else{for(let j=-1;j<=1;j++){const ag=a+j*0.25;game.bullets.push({x:b.x+j*10,y:b.y+30,vx:Math.cos(ag)*3.5,vy:Math.sin(ag)*3.5,damage:15,w:6,h:6,color:'#ff4444',enemyBullet:true,trail:[]});}}playSound('shotgun');}}
   }
+  // 精准描板：自动瞄准最近的敌人射击
+  if(game.autoAimCharges>0&&game.autoAimTimer>0){
+    game.autoAimCooldown--;
+    let nearest=null,nearDist=Infinity;
+    for(const e of game.enemies){
+      if(e.isTarget) continue;
+      const d=dist(player,e);
+      if(d<nearDist){nearDist=d;nearest=e;}
+    }
+    if(nearest&&game.autoAimCooldown<=0){
+      const ang=Math.atan2(nearest.y-(player.y-player.h/2),nearest.x-player.x);
+      game.bullets.push({x:player.x,y:player.y-player.h/2-8,vx:Math.cos(ang)*9,vy:Math.sin(ang)*9,damage:Math.round(15*player.damageMult),w:4,h:4,color:'#00ff88',trail:[],piercing:true});
+      game.autoAimCooldown=10;
+      playSound('shoot');
+    }
+    game.autoAimTimer--;
+    if(game.autoAimTimer<=0){
+      game.autoAimCharges--;
+      if(game.autoAimCharges>0) game.autoAimTimer=300;
+    }
+  }
   for(let i=game.bullets.length-1;i>=0;i--){
     const b=game.bullets[i];b.trail.push({x:b.x,y:b.y});if(b.trail.length>5)b.trail.shift();b.x+=b.vx;b.y+=b.vy;
     if(b.x<-20||b.x>W+20||b.y<-20||b.y>H+20){game.bullets.splice(i,1);continue;}
@@ -1185,6 +1216,11 @@ document.getElementById('modeTrainBtn').addEventListener('click',()=>setMode(fal
 document.getElementById('startBtn').addEventListener('click',()=>{initAudio();startScreen.style.display='none';game.started=true;var fb=document.getElementById('feedbackBtn');if(fb){fb.style.setProperty('display','block','important');fb.style.visibility='visible';}resetGame();if(bgmEnabled)bgm.start();syncBgmToggleUI();setTimeout(fitGame,50);gameLoop();});
 document.getElementById('restartBtn').addEventListener('click',()=>{gameOverScreen.style.display='none';resetGame();});
 document.getElementById('victoryRestartBtn').addEventListener('click',()=>{victoryScreen.style.display='none';resetGame();});
+// 游戏说明弹窗
+const helpOverlay=document.getElementById('helpOverlay');
+document.getElementById('helpBtn').addEventListener('click',()=>{helpOverlay.style.display='flex';});
+document.getElementById('helpCloseBtn').addEventListener('click',()=>{helpOverlay.style.display='none';});
+helpOverlay.addEventListener('click',(e)=>{if(e.target===helpOverlay)helpOverlay.style.display='none';});
 function goToMenu(){
   gameOverScreen.style.display='none';victoryScreen.style.display='none';game.started=false;game.running=false;bgm.stop();startScreen.style.display='flex';updateUI();updateUsernameDisplay();renderLevelSelector();hideGameUI();
 }

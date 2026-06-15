@@ -90,6 +90,7 @@
       <span id="usernameDisplay">👤 玩家</span>
       <button id="adminPanelBtn" style="display:none">⚙️ 管理</button>
       <button id="logoutBtn">切换用户</button>
+      <button id="helpBtn" class="help-btn">📖 说明</button>
     </div>
     <div class="controls">
       <kbd>A</kbd> <kbd>D</kbd> 或 ← → 移动 &nbsp;|&nbsp; <kbd>Space</kbd> 射击<br>
@@ -130,6 +131,34 @@
     <button class="start-btn" id="permShopBtn" style="font-size:13px;padding:6px 24px;margin-bottom:6px;">🏪 永久商店</button>
     <button class="start-btn" id="startBtn">进入战场</button>
     <div style="margin-top:14px;color:#555;font-size:13px;">👶 6岁+ 适龄游戏</div>
+  </div>
+  <div id="helpOverlay" style="display:none;">
+    <div id="helpContent">
+      <h2>📖 游戏说明</h2>
+      <button id="helpCloseBtn" class="close-btn">✕</button>
+      <div id="helpBody">
+        <h3>🎮 操作方式</h3>
+        <p><kbd>A</kbd> / <kbd>←</kbd> 左移 &nbsp; <kbd>D</kbd> / <kbd>→</kbd> 右移 &nbsp; <kbd>空格</kbd> 射击</p>
+        <p><kbd>Shift</kbd> 瞄准（狙击镜）&nbsp; <kbd>B</kbd> 打开商店</p>
+        <p>📱 手机端：屏幕左右两侧点击移动，右侧按钮射击</p>
+
+        <h3>⚔ 关卡系统</h3>
+        <p>共55关，1-11关手动设计，12-55关自动生成。每关需消灭全部敌人，部分关卡有BOSS。</p>
+
+        <h3>🔫 武器</h3>
+        <p><b>手枪</b>（22伤害·基础）→ 拾取升级为 <b>步枪</b>（30伤害·连发）→ <b>霰弹枪</b>（18×6散射）→ <b>狙击枪</b>（70伤害·远程）</p>
+        <p>🏪 永久武器（金币购买）：<b>金箍棒</b>（65近战）、<b>激光枪</b>（18穿刺）、<b>AK47</b>（28全自动）</p>
+
+        <h3>🛒 商店（战斗中按 B）</h3>
+        <p>使用得分购买：伤害提升、射速提升、医疗包、护甲（减伤最多60%）</p>
+
+        <h3>💰 金币与永久物品</h3>
+        <p>每局结束根据表现获得金币。在主菜单「永久商店」购买永久物品，每局自动生效。</p>
+
+        <h3>🎯 精准描板</h3>
+        <p>永久物品。开局自动触发3次，每次5秒内自动瞄准并射击最近的敌人。</p>
+      </div>
+    </div>
   </div>
   <div id="gameOver">
     <h1>💀 战死沙场</h1>

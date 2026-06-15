@@ -40,6 +40,8 @@
     #victoryScreen { background: rgba(255,255,255,0.97); }
     #victoryScreen h1 { color: #b8860b; }
     .user-info { color: #333; }
+    .help-btn { background: #fff3cd; border:1px solid #d4a017; color:#8a6a00; }
+    .help-btn:hover { background: #ffe69c; }
     #adminPanelBtn { background: #d4edda; border-color: #6a8a3a; color: #2d6a2d; }
     #adminPanelBtn:hover { background: #c8ddc8; }
     .level-btn { background: #e0e0e0; color: #333; border-color: #bbb; }
@@ -287,6 +289,17 @@
     font-family: inherit;
   }
   #adminPanelBtn:hover { background: #4a5a3a; color: #aaba7a; }
+  .help-btn {
+    background: #3a3a1a;
+    border: 1px solid #d4a017;
+    color: #d4a017;
+    padding: 2px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .help-btn:hover { background: #4a4a2a; color: #ffe69c; }
   #startScreen .controls {
     background: #16162a;
     border: 1px solid #333;
@@ -607,6 +620,40 @@
     z-index: 20;
   }
   #shopOverlay.open { display: flex; }
+  /* 游戏说明弹窗 */
+  #helpOverlay {
+    position: fixed; inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+  }
+  #helpContent {
+    background: #1a1a2e;
+    border: 2px solid #ffd700;
+    border-radius: 12px;
+    padding: 28px 36px;
+    max-width: 520px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 0 40px rgba(255,215,0,0.15);
+  }
+  #helpContent h2 { color: #ffd700; font-size: 22px; text-align: center; margin-bottom: 14px; }
+  #helpContent h3 { color: #88ddff; font-size: 16px; margin: 14px 0 6px; }
+  #helpContent p { color: #ccc; font-size: 13px; line-height: 1.6; margin: 4px 0; }
+  #helpContent kbd {
+    background: #333; color: #fff; padding: 2px 6px;
+    border-radius: 3px; font-size: 12px; border: 1px solid #555;
+  }
+  #helpCloseBtn {
+    position: absolute; top: 10px; right: 14px;
+    background: none; border: none; color: #888;
+    font-size: 20px; cursor: pointer;
+  }
+  #helpCloseBtn:hover { color: #fff; }
   .shop-panel {
     background: linear-gradient(135deg, #1a1a0a, #2a2a1a);
     border: 2px solid #ffd700;
